@@ -55,24 +55,190 @@
     matchMedia('(min-width: 1080px)').addEventListener('change', (q) => { if (q.matches && !menu.hidden) close(); });
   }
 
+  // The click loader runs once per session (decided in <head>); clear it once the curtain has opened.
+  if (root.classList.contains('intro-on')) setTimeout(() => root.classList.remove('intro-on'), 1800);
+
+  const canObserve = 'IntersectionObserver' in window && !reduceMotion;
+  const onceInView = (els, fn, options = { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }) => {
+    if (!canObserve) { els.forEach(fn); return; }
+    const io = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      fn(entry.target);
+      io.unobserve(entry.target);
+    }), options);
+    els.forEach((el) => io.observe(el));
+  };
+
   // Sections ease in once, as they enter the viewport.
-  const revealTargets = document.querySelectorAll(
-    '.section-head, .practices, .feature-works, .steps, .work-entry, .rundown.full, .dv-split'
-  );
-  const rundown = document.querySelector('.rundown.mini');
-  if ('IntersectionObserver' in window && !reduceMotion) {
-    revealTargets.forEach((el) => el.setAttribute('data-reveal', ''));
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-in');
-        io.unobserve(entry.target);
+  const revealTargets = [...document.querySelectorAll(
+    '.section-head > p, .section-lede, .practices, .feature-works, .work-rows, .steps, .portal-band, .work-entry, .rundown.full, .dv-split > *, .facts-list, .mini-works, .principles, .two-col > *'
+  )];
+  if (canObserve) revealTargets.forEach((el) => el.setAttribute('data-reveal', ''));
+  onceInView(revealTargets, (el) => el.classList.add('is-in'));
+
+  // Headlines arrive word by word. Whole words only, so Arabic letters stay joined.
+  const headlines = [...document.querySelectorAll('.hero-title, .section-title, .page-title, .dv-title, .close-title, .sub-title')];
+  if (canObserve) {
+    headlines.forEach((heading) => {
+      let i = 0;
+      const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((node) => {
+        const parts = node.textContent.split(/(\s+)/);
+        const frag = document.createDocumentFragment();
+        parts.forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.append(part); return; }
+          const word = document.createElement('span');
+          word.className = 'w';
+          word.style.setProperty('--i', i++);
+          word.textContent = part;
+          frag.append(word);
+        });
+        node.replaceWith(frag);
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    revealTargets.forEach((el) => io.observe(el));
-    if (rundown) io.observe(rundown);
-  } else if (rundown) {
-    rundown.classList.add('is-in');
+      heading.classList.add('split');
+    });
+    const hero = document.querySelector('.hero-title');
+    if (hero) requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add('is-in')));
+    onceInView(headlines.filter((h) => h !== hero), (h) => h.classList.add('is-in'));
+  }
+
+  // Facts count up from zero: small, real numbers.
+  onceInView([...document.querySelectorAll('[data-count]')], (el) => {
+    const end = +el.dataset.count;
+    const start = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - start) / 900);
+      el.textContent = Math.round(end * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    if (!reduceMotion) requestAnimationFrame(step);
+  }, { threshold: 0.6 });
+
+  // Live sites scroll inside their frames: on hover or focus, or by themselves on touch screens.
+  const frames = [...document.querySelectorAll('[data-tall]')];
+  const loadTall = (frame) => new Promise((resolve) => {
+    if (frame.tall) return resolve(frame.tall);
+    const img = new Image();
+    img.className = 'tall';
+    img.alt = '';
+    img.decoding = 'async';
+    img.onload = () => { frame.append(img); frame.tall = img; requestAnimationFrame(() => { frame.classList.add('has-tall'); resolve(img); }); };
+    img.onerror = () => resolve(null);
+    img.src = frame.dataset.tall;
+  });
+  const scrollFrame = async (frame, on) => {
+    if (!on) {
+      frame.style.setProperty('--scroll-time', '1.1s');
+      frame.classList.remove('is-scrolling');
+      return;
+    }
+    const img = await loadTall(frame);
+    if (!img) return;
+    const distance = Math.max(0, img.getBoundingClientRect().height - frame.clientHeight);
+    frame.style.setProperty('--scroll-to', `${-distance}px`);
+    frame.style.setProperty('--scroll-time', `${Math.max(4, distance / 240)}s`);
+    requestAnimationFrame(() => frame.classList.add('is-scrolling'));
+  };
+  if (!reduceMotion) {
+    const hoverable = matchMedia('(hover: hover)').matches;
+    frames.forEach((frame) => {
+      const target = frame.closest('a, figure') || frame;
+      if (hoverable) {
+        target.addEventListener('pointerenter', () => scrollFrame(frame, true));
+        target.addEventListener('pointerleave', () => scrollFrame(frame, false));
+      }
+      frame.addEventListener('focus', () => scrollFrame(frame, true));
+      frame.addEventListener('blur', () => scrollFrame(frame, false));
+    });
+    if (!hoverable && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => scrollFrame(e.target, e.isIntersecting)), { threshold: 0.75 });
+      frames.forEach((f) => io.observe(f));
+    }
+  }
+
+  // The process line fills as you read through the four steps.
+  const steps = document.querySelector('.steps');
+  if (steps) {
+    const items = [...steps.querySelectorAll('.step')];
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const top = steps.getBoundingClientRect().top;
+      const p = Math.min(1, Math.max(0, (innerHeight * 0.8 - top) / (innerHeight * 0.45)));
+      steps.style.setProperty('--p', p.toFixed(3));
+      items.forEach((item, i) => item.classList.toggle('is-lit', p > i / items.length + 0.02));
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+  }
+
+  // Devlo board: sample stories move through the panel's real statuses, under a running clock.
+  document.querySelectorAll('[data-board]').forEach((board) => {
+    const labels = JSON.parse(board.dataset.lamps);
+    const order = ['draft', 'standby', 'live', 'published'];
+    const rows = [...board.querySelectorAll('.bd-row')];
+    const clock = board.querySelector('[data-clock]');
+    let visible = false;
+    let turn = 0;
+    const pad = (n) => String(n).padStart(2, '0');
+    const tickClock = () => { const d = new Date(); clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+    const advance = () => {
+      const row = rows[turn++ % rows.length];
+      const next = order[(order.indexOf(row.dataset.lamp) + 1) % order.length];
+      row.dataset.lamp = next;
+      row.querySelector('.bd-status > span:last-child').textContent = labels[next];
+      row.classList.remove('is-changed');
+      void row.offsetWidth;
+      row.classList.add('is-changed');
+    };
+    tickClock();
+    if (reduceMotion) return;
+    if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(board);
+    setInterval(() => { if (visible && !document.hidden) tickClock(); }, 1000);
+    setInterval(() => { if (visible && !document.hidden) advance(); }, 2300);
+  });
+
+  // Edition switch: the same story in another edition, entering from that language's reading side.
+  document.querySelectorAll('[data-edition-switch]').forEach((box) => {
+    const keys = [...box.querySelectorAll('[data-edition-key]')];
+    const cards = [...box.querySelectorAll('[data-edition]')];
+    keys.forEach((key) => key.addEventListener('click', () => {
+      const lang = key.dataset.editionKey;
+      keys.forEach((k) => k.setAttribute('aria-pressed', String(k === key)));
+      cards.forEach((card) => {
+        const show = card.dataset.edition === lang;
+        card.hidden = !show;
+        card.classList.remove('is-entering');
+        if (show && !reduceMotion) {
+          card.style.setProperty('--from', card.dir === 'rtl' ? 1 : -1);
+          void card.offsetWidth;
+          card.classList.add('is-entering');
+        }
+      });
+    }));
+  });
+
+  // Hero in 3D: loaded once the visitor engages, only where it will run well. The SVG lattice stays otherwise.
+  const heroCanvas = document.querySelector('[data-hero-3d]');
+  if (heroCanvas && !reduceMotion && !(navigator.connection && navigator.connection.saveData) && (navigator.deviceMemory || 4) >= 2) {
+    // import() resolves against this script, not the page, so make the URL absolute first
+    const start = () => import(new URL(heroCanvas.dataset.module, document.baseURI).href)
+      .then((mod) => mod.default(heroCanvas, heroCanvas.closest('[data-hero-art]'), root.classList.contains('intro-on') ? 1150 : 0))
+      .catch(() => { /* WebGL or module unavailable: the SVG lattice remains */ });
+    // Wait for the visitor's first mouse move or scroll, so parsing Three.js never competes with page load.
+    // Taps and keys are left out on purpose: work right after them would delay their response.
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    const kick = (event) => {
+      if (event.type === 'pointermove' && event.pointerType !== 'mouse') return;
+      removeEventListener('pointermove', kick);
+      removeEventListener('scroll', kick);
+      idle(start);
+    };
+    addEventListener('pointermove', kick, { passive: true });
+    addEventListener('scroll', kick, { passive: true });
   }
 
   // Hero lattice: cells near the pointer brighten, like parts being picked up.
