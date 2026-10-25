@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TakTek</title>
+<meta name="description" content="TakTek designs, builds and runs websites, apps and custom software, and makes Devlo, the Arabic-first CMS for newsrooms. Working in English, Arabic and Turkish.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://taktek-dev.github.io/taktek-prototype/">
+<link rel="alternate" hreflang="en" href="https://taktek-dev.github.io/taktek-prototype/en/"><link rel="alternate" hreflang="ar" href="https://taktek-dev.github.io/taktek-prototype/ar/"><link rel="alternate" hreflang="tr" href="https://taktek-dev.github.io/taktek-prototype/tr/"><link rel="alternate" hreflang="x-default" href="https://taktek-dev.github.io/taktek-prototype/">
+<link rel="icon" href="assets/img/brand/taktek-favicon.svg" type="image/svg+xml">
+<script>
+(function () {
+  var langs = ["en", "ar", "tr"], pick = null;
+  try { pick = localStorage.getItem('tt-lang'); } catch (e) {}
+  if (langs.indexOf(pick) < 0) {
+    var nav = (navigator.languages || [navigator.language || '']);
+    for (var i = 0; i < nav.length && !pick; i++) {
+      var code = String(nav[i]).slice(0, 2).toLowerCase();
+      if (langs.indexOf(code) > -1) pick = code;
+    }
+  }
+  location.replace((pick || 'en') + '/');
+})();
+</script>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101413;color:#fff;font:16px/1.5 system-ui,sans-serif}ul{list-style:none;padding:0;display:flex;gap:24px}a{color:#D4F53C}</style>
+</head>
+<body>
+<main><p>TakTek · تاك تيك</p><ul><li><a href="en/" lang="en" hreflang="en" data-lang="en">English</a></li><li><a href="ar/" lang="ar" hreflang="ar" data-lang="ar">العربية</a></li><li><a href="tr/" lang="tr" hreflang="tr" data-lang="tr">Türkçe</a></li></ul></main>
+</body>
+</html>

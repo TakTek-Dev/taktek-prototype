@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TakTek & Devlo — Brand guidelines</title>
+<meta name="description" content="Brand guidelines for TakTek and its product Devlo CMS: logos, colour, type, graphic language, motion, voice and the rules that connect the two brands.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/img/brand/taktek-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/site.css?v=1">
+<script>document.documentElement.classList.replace('no-js','js')</script>
+<style>
+  .bg-wrap { max-inline-size: 1180px; margin-inline: auto; padding-inline: var(--gutter); }
+  .bg-top { padding-block: 56px 40px; border-block-end: 1px solid var(--n-100); }
+  .bg-top .logo-word { block-size: 36px; }
+  .bg-top h1 { margin-block: 32px 12px; font-size: clamp(2.2rem, 5vw, 3.8rem); letter-spacing: -.03em; line-height: 1.05; }
+  .bg-top p { color: var(--text-2); max-inline-size: 64ch; }
+  .bg-toc { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-block-start: 24px; font-size: .9375rem; }
+  .bg-toc a { text-decoration: none; border-block-end: 1px solid var(--n-200); }
+  .bg-sec { padding-block: 64px; border-block-end: 1px solid var(--n-100); }
+  .bg-sec > h2 { font-size: clamp(1.6rem, 3vw, 2.3rem); letter-spacing: -.02em; margin-block-end: 12px; }
+  .bg-sec > p, .bg-note { color: var(--text-2); max-inline-size: 70ch; margin-block-end: 24px; }
+  .bg-sec h3 { font-size: 1.125rem; margin-block: 32px 12px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .tile { border: 1px solid var(--n-200); border-radius: 16px; overflow: hidden; display: grid; }
+  .tile .stage { display: grid; place-items: center; min-block-size: 170px; padding: 24px; }
+  .tile .stage img { max-block-size: 70px; inline-size: auto; }
+  .tile .cap { padding: 12px 14px; font-size: .8125rem; border-block-start: 1px solid var(--n-100); display: flex; justify-content: space-between; gap: 8px; }
+  .tile .cap a { font-family: var(--f-mono); }
+  .ink { background: #101413; } .paper { background: #F4F5FA; } .night { background: #0E1018; } .white { background: #fff; }
+  .swatches { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .sw { border-radius: 14px; border: 1px solid var(--n-200); overflow: hidden; font-size: .8125rem; }
+  .sw b { display: block; block-size: 86px; }
+  .sw div { padding: 10px 12px; display: grid; gap: 2px; }
+  .sw code { font-family: var(--f-mono); color: var(--text-2); }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .9375rem; }
+  th, td { text-align: start; padding: 10px 12px; border-block-end: 1px solid var(--n-100); vertical-align: top; }
+  th { font: 500 .8125rem var(--f-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); }
+  .tbl { overflow-x: auto; }
+  .specimen { display: grid; gap: 4px; padding: 24px; border: 1px solid var(--n-200); border-radius: 16px; }
+  .specimen small { font: 500 .75rem var(--f-mono); color: var(--text-2); }
+  .dd { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .do, .dont { padding: 18px 20px; border-radius: 14px; }
+  .do { background: #eef9c4; } .dont { background: #fdecea; }
+  .do h4, .dont h4 { font-size: 1rem; margin-block-end: 8px; }
+  .do li, .dont li { margin-block: 6px; padding-inline-start: 18px; position: relative; }
+  .do li::before { content: "✓"; position: absolute; inset-inline-start: 0; }
+  .dont li::before { content: "✕"; position: absolute; inset-inline-start: 0; }
+  .demo-tak { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; font-size: 2rem; }
+  .demo-tak .tak:hover { gap: 0; }
+  .cs { display: grid; place-items: center; padding: 40px; background: repeating-linear-gradient(45deg, #f3f5f4 0 8px, #fff 8px 16px); border-radius: 16px; }
+  .cs div { outline: 1px dashed #e5484d; outline-offset: 0; padding: 28px; background: #fff; }
+  .cs img { block-size: 48px; }
+  code.k { font-family: var(--f-mono); font-size: .875em; background: var(--n-50); padding: 1px 6px; border-radius: 6px; }
+  .arch { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .arch div { padding: 20px; border-radius: 14px; border: 1px solid var(--n-200); }
+  .arch h4 { margin-block-end: 6px; }
+  .arch p { color: var(--text-2); font-size: .9375rem; }
+</style>
+</head>
+<body>
+<header class="bg-top">
+  <div class="bg-wrap">
+    <img class="logo-word" src="../assets/img/brand/taktek-logo.svg" alt="TakTek">
+    <h1>Brand guidelines<br>TakTek &amp; Devlo CMS</h1>
+    <p>One system for the company and its product. Everything here is implemented as tokens in <code class="k">assets/css/site.css</code> and as outlined SVG in <code class="k">assets/img/brand/</code>, generated by <code class="k">tools/logos.py</code>. Version 1 · 25 October 2026.</p>
+    <nav class="bg-toc" aria-label="Contents">
+      <a href="#arch">Architecture</a><a href="#position">Positioning</a><a href="#logo">TakTek logo</a><a href="#colour">Colour</a><a href="#type">Type</a><a href="#graphic">Graphic language</a><a href="#motion">Motion</a><a href="#voice">Voice</a><a href="#devlo">Devlo identity</a><a href="#link">Connecting the two</a><a href="#a11y">Accessibility</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+<section class="bg-sec" id="arch"><div class="bg-wrap">
+  <h2>Brand architecture: an endorsed product brand</h2>
+  <p>TakTek is the company; Devlo is a product with its own name, colour, type and voice, always endorsed «by TakTek». We chose endorsement over a branded house (Devlo would read as a TakTek service page) and over full independence (Devlo's credibility comes from the studio that builds and runs every newsroom on it).</p>
+  <div class="arch">
+    <div><h4>Shared</h4><p>Grid, spacing, radii, neutrals, the mono face for technical labels, motion timing, accessibility rules, the diamond (the Tak) as the smallest unit of both systems.</p></div>
+    <div><h4>TakTek only</h4><p>Ink + signal lime, Schibsted Grotesk / Kufam, the T-Tak mark, the diamond lattice, seams with joints, the snap.</p></div>
+    <div><h4>Devlo only</h4><p>Indigo + paper, on-air red, Newsreader / Noto Naskh Arabic, the rundown D, time-coded rows and broadcast lamps, the dot-grid studio wall.</p></div>
+  </div>
+</div></section>
+
+<section class="bg-sec" id="position"><div class="bg-wrap">
+  <h2>Positioning</h2>
+  <div class="tbl"><table>
+    <tr><th></th><th>TakTek</th><th>Devlo CMS</th></tr>
+    <tr><td>Line</td><td>Every piece in its place. · كل قطعة في مكانها. · Her parça yerli yerinde.</td><td>Your newsroom, on air. · غرفة أخبارك على الهواء. · Haber merkeziniz yayında.</td></tr>
+    <tr><td>Statement</td><td>A software and digital studio that designs, builds and runs websites, apps and systems, in Arabic, English and Turkish, from one team.</td><td>The Arabic-first newsroom CMS: breaking news, live coverage, Telegram/RSS intake and translation between editions, with each newsroom on its own domain, database and front end.</td></tr>
+    <tr><td>For</td><td>Organisations, publishers and media that need a product built and kept running, often in more than one language.</td><td>Editors, desk managers and publishers at Arab and regional news organisations; decision-makers choosing a CMS.</td></tr>
+    <tr><td>Proof</td><td>Seven live projects with screenshots and links; the client portal; the stack behind them.</td><td>Six live newsrooms; the public demo; module list taken from the codebase.</td></tr>
+    <tr><td>Personality</td><td>Precise, plain-spoken, calm, a little playful in motion.</td><td>Editorial, composed under pressure, procedural, exact about time.</td></tr>
+  </table></div>
+</div></section>
+
+<section class="bg-sec" id="logo"><div class="bg-wrap">
+  <h2>TakTek logo: the T-Tak</h2>
+  <p>A lowercase t whose crossbar is the two dots of the Arabic ت, the diamond dots TakTek's first logo already carried. The stem stops a hair short of the dots, so they float where the parts meet: the instant before the click (<em>tak</em> in Turkish is to fit; <em>tak</em> is also its sound). The same sign reads in Latin and Arabic script.</p>
+  <div class="grid">
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/taktek-logo.svg" alt="TakTek primary logo"></div><div class="cap">Primary <a href="../assets/img/brand/taktek-logo.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage ink"><img src="../assets/img/brand/taktek-logo-reverse.svg" alt="TakTek logo on ink"></div><div class="cap">Reverse (signal dots) <a href="../assets/img/brand/taktek-logo-reverse.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/taktek-logo-ar.svg" alt="TakTek Arabic logo"></div><div class="cap">Arabic <a href="../assets/img/brand/taktek-logo-ar.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage ink"><img src="../assets/img/brand/taktek-logo-ar-reverse.svg" alt="TakTek Arabic logo on ink"></div><div class="cap">Arabic reverse <a href="../assets/img/brand/taktek-logo-ar-reverse.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/taktek-mark.svg" alt="TakTek mark"></div><div class="cap">Mark <a href="../assets/img/brand/taktek-mark.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/taktek-favicon.svg" alt="TakTek app icon"></div><div class="cap">Icon / favicon <a href="../assets/img/brand/taktek-favicon.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/taktek-logo-small.svg" alt="TakTek small-size logo" style="max-block-size:28px"></div><div class="cap">Small sizes (joined stem) <a href="../assets/img/brand/taktek-logo-small.svg" download>SVG</a></div></div>
+  </div>
+  <h3>Rules</h3>
+  <div class="dd">
+    <div class="do"><h4>Do</h4><ul>
+      <li>Use the joined-stem version at 24px tall and under; the gap closes up at small sizes.</li>
+      <li>Keep clear space of one diamond width on every side.</li>
+      <li>In Arabic, pair the mark with «تاك تيك» on the inline-start side.</li>
+      <li>Use signal dots only on ink; on white the whole logo is ink.</li>
+    </ul></div>
+    <div class="dont"><h4>Don't</h4><ul>
+      <li>Mirror the mark in right-to-left layouts. It is a sign, not a direction.</li>
+      <li>Set "taktek" in a font; the t's are drawn, not typed.</li>
+      <li>Put signal lime on white or light grey (it fails contrast).</li>
+      <li>Add gradients, outlines, shadows or a container shape to the mark.</li>
+    </ul></div>
+  </div>
+  <h3>Clear space</h3>
+  <div class="cs"><div><img src="../assets/img/brand/taktek-logo.svg" alt=""></div></div>
+</div></section>
+
+<section class="bg-sec" id="colour"><div class="bg-wrap">
+  <h2>Colour</h2>
+  <p>TakTek is ink and white with one signal; the signal marks the moment something fits (the dots, the primary action, the current language). Devlo is paper and indigo from its own panel, with red reserved for on air. Neutrals are cool and shared. No warm paper, no gradients on controls.</p>
+  <h3>TakTek</h3>
+  <div class="swatches">
+    <div class="sw"><b style="background:#101413"></b><div><strong>Ink</strong><code>#101413 · --tt-ink</code><span>Text, surfaces, logo</span></div></div>
+    <div class="sw"><b style="background:#D4F53C"></b><div><strong>Signal</strong><code>#D4F53C · --tt-signal</code><span>On ink only; 15.0:1 on ink</span></div></div>
+    <div class="sw"><b style="background:#4F6600"></b><div><strong>Signal deep</strong><code>#4F6600</code><span>Signal as text on white, 6.5:1</span></div></div>
+    <div class="sw"><b style="background:#EEF9C4"></b><div><strong>Signal soft</strong><code>#EEF9C4</code><span>Highlight panels</span></div></div>
+    <div class="sw"><b style="background:#fff"></b><div><strong>White</strong><code>#FFFFFF</code><span>Canvas</span></div></div>
+  </div>
+  <h3>Shared neutrals</h3>
+  <div class="swatches">
+    <div class="sw"><b style="background:#F3F5F4"></b><div><strong>50</strong><code>#F3F5F4</code></div></div>
+    <div class="sw"><b style="background:#E8ECEA"></b><div><strong>100</strong><code>#E8ECEA</code></div></div>
+    <div class="sw"><b style="background:#D5DBD8"></b><div><strong>200 · lines</strong><code>#D5DBD8</code></div></div>
+    <div class="sw"><b style="background:#535B57"></b><div><strong>600 · secondary text</strong><code>#535B57 · 7.0:1</code></div></div>
+    <div class="sw"><b style="background:#232927"></b><div><strong>800</strong><code>#232927</code></div></div>
+  </div>
+  <h3>Devlo</h3>
+  <div class="swatches">
+    <div class="sw"><b style="background:#5D5FEF"></b><div><strong>Indigo</strong><code>#5D5FEF · --dv-indigo</code><span>The panel's own brand token</span></div></div>
+    <div class="sw"><b style="background:#3134B8"></b><div><strong>Indigo deep</strong><code>#3134B8</code><span>Indigo as text, 9.1:1 (8.3:1 on paper)</span></div></div>
+    <div class="sw"><b style="background:#F4F5FA"></b><div><strong>Paper</strong><code>#F4F5FA · --dv-paper</code><span>The studio wall</span></div></div>
+    <div class="sw"><b style="background:#0E1018"></b><div><strong>Night</strong><code>#0E1018 · --dv-night</code></div></div>
+    <div class="sw"><b style="background:#E5484D"></b><div><strong>On air</strong><code>#E5484D · --dv-live</code><span>Live state only</span></div></div>
+    <div class="sw"><b style="background:#E8A317"></b><div><strong>Standby</strong><code>#E8A317 · --dv-amber</code><span>Waiting, scheduled</span></div></div>
+  </div>
+  <p class="bg-note">Status colours inside the Devlo application follow the panel's DSX tokens (<code class="k">public/assets/dashboard/css/custom-style.css</code> in the Devlo repo); the marketing palette above is a strict subset of them, so marketing and product never disagree.</p>
+</div></section>
+
+<section class="bg-sec" id="type"><div class="bg-wrap">
+  <h2>Type</h2>
+  <p>Self-hosted, subset WOFF2 from Google Fonts (OFL). Arabic and Latin faces are chosen per brand, not shared, so each brand keeps its voice in every script. IBM Plex Sans Arabic and Cairo are not used.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="specimen"><small>TakTek · Latin & Turkish · display and text</small><span style="font:780 2.4rem/1.05 'Schibsted Grotesk';letter-spacing:-.03em">Her parça yerli yerinde.</span><span style="font:400 1rem 'Schibsted Grotesk'">Schibsted Grotesk 400–800 · ğ ş ı İ ö ü ç</span></div>
+    <div class="specimen" dir="rtl" lang="ar"><small dir="ltr">TakTek · Arabic display / text</small><span style="font:800 2.2rem/1.4 Kufam">كل قطعة في مكانها.</span><span style="font:400 1rem Vazirmatn">Kufam ٥٠٠–٨٠٠ للعناوين · Vazirmatn للنصوص</span></div>
+    <div class="specimen"><small>Devlo · Latin & Turkish editorial</small><span style="font:600 2.3rem/1.08 Newsreader">Your newsroom, on air.</span><span style="font:400 1rem 'Schibsted Grotesk'">Newsreader 400–650 for headlines; UI text stays in the shared sans</span></div>
+    <div class="specimen" dir="rtl" lang="ar"><small dir="ltr">Devlo · Arabic editorial</small><span style="font:700 2.1rem/1.45 'Noto Naskh Arabic'">غرفة أخبارك على الهواء.</span><span style="font:400 1rem Vazirmatn">Noto Naskh Arabic: نسخ الصحافة للعناوين</span></div>
+    <div class="specimen"><small>Shared · technical labels, time codes, domains</small><span style="font:500 1.6rem 'Geist Mono'">12:04 · qudsn.co</span><span style="font:400 1rem 'Geist Mono'">Geist Mono 400–500 (Latin digits in every language)</span></div>
+  </div>
+  <h3>Scale and rules</h3>
+  <div class="tbl"><table>
+    <tr><th>Role</th><th>Latin / Turkish</th><th>Arabic</th></tr>
+    <tr><td>Hero</td><td>clamp(2.5rem, 6vw, 5.2rem) · 790 · line 1.04 · tracking −0.035em · max 13ch</td><td>clamp(2.2rem, 5vw, 4.3rem) · Kufam 800 · line 1.38 · no tracking, ever</td></tr>
+    <tr><td>Section title</td><td>clamp(1.9rem, 4.2vw, 3.25rem) · 750</td><td>same size · Kufam · line 1.38</td></tr>
+    <tr><td>Body</td><td>1.0625rem · line 1.6</td><td>1.0625rem · Vazirmatn · line 1.85</td></tr>
+    <tr><td>Kicker / labels</td><td>Geist Mono 13px uppercase, +0.04em</td><td>Vazirmatn 600, no uppercase, no tracking</td></tr>
+    <tr><td>Turkish</td><td colspan="2">Hero one step smaller and 17ch wide; set <code class="k">lang="tr"</code> so uppercase gives İ, not I.</td></tr>
+    <tr><td>Arabic</td><td colspan="2">No tashkeel in interface copy; Latin words inside Arabic in <code class="k">&lt;bdi&gt;</code>; letter-spacing 0 on all Arabic.</td></tr>
+  </table></div>
+</div></section>
+
+<section class="bg-sec" id="graphic"><div class="bg-wrap">
+  <h2>Graphic language</h2>
+  <p>Recognisable without the logo. Every element comes from the same idea, parts fitting.</p>
+  <div class="tbl"><table>
+    <tr><th>Element</th><th>What it is</th><th>Where</th></tr>
+    <tr><td><span class="tak" style="font-size:1.4rem"><i></i><i></i></span> The Tak</td><td>Two rounded diamonds side by side. The smallest brand unit. On hover the pair snaps shut.</td><td>Kickers, list markers, contact links, the client portal</td></tr>
+    <tr><td>Joints</td><td>Hairline seams between pieces of content, with a single diamond where seams meet.</td><td>Practices, steps, principles, practice blocks</td></tr>
+    <tr><td>The lattice</td><td>A 45° grid of diamond cells on ink. Two cells are lit as the Tak and crossed by the t's stem; labels name the eight services.</td><td>Home hero; can be cropped for presentations and social</td></tr>
+    <tr><td>Device frames</td><td>Real screenshots: desktop in a 16px-radius frame, phone in an ink bezel overlapping its corner.</td><td>Work, home, case material</td></tr>
+    <tr><td>Index numbers</td><td>Mono numerals 01–05 and giant mono indices on practice pages.</td><td>Section heads, practices, projects</td></tr>
+  </table></div>
+  <h3>Imagery</h3>
+  <p>Only real material: live sites, the real Devlo sign-in, real product screens. No stock photography, no invented dashboards, no fake devices showing features that do not exist. Screenshots carry their capture date.</p>
+</div></section>
+
+<section class="bg-sec" id="motion"><div class="bg-wrap">
+  <h2>Motion</h2>
+  <p>Motion says one thing: a part arrives and clicks into place. Hover the pair below.</p>
+  <div class="demo-tak"><span class="tak"><i></i><i></i></span><span class="lamp live" style="color:#E5484D"><i></i><i></i></span></div>
+  <div class="tbl"><table>
+    <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+    <tr><td><code class="k">--ease-snap</code></td><td>cubic-bezier(.3, 1.45, .55, 1)</td><td>Arrival with a hair of overshoot: lattice cells, arrows, hover on the Tak</td></tr>
+    <tr><td><code class="k">--ease-out</code></td><td>cubic-bezier(.2, .7, .2, 1)</td><td>Reveals, underlines, sheets</td></tr>
+    <tr><td>Durations</td><td>140 / 260 / 520 ms</td><td>Feedback / UI / entrances. Nothing longer than 900ms except the hero's first draw.</td></tr>
+    <tr><td>Direction</td><td>Logical</td><td>Underlines grow from inline-start; arrows nudge toward reading direction; brand marks never flip.</td></tr>
+    <tr><td>Devlo</td><td>Tally pulse 2.4s on live lamps only; rundown rows rise in order</td><td>Broadcast language, never decorative loops elsewhere</td></tr>
+    <tr><td>Reduced motion</td><td>All animation reduced to 1ms; content always visible without JavaScript</td><td>Required</td></tr>
+  </table></div>
+</div></section>
+
+<section class="bg-sec" id="voice"><div class="bg-wrap">
+  <h2>Voice</h2>
+  <div class="dd">
+    <div class="do"><h4>TakTek sounds like</h4><ul><li>"Every project below is a public site you can open today."</li><li>Short sentences, real nouns, verbs that say what we do.</li><li>Facts before claims; results only when a client confirms them.</li></ul></div>
+    <div class="dont"><h4>Never</h4><ul><li>"Cutting-edge", "world-class", "the ultimate", "the future of…"</li><li>Invented numbers, clients, awards or testimonials.</li><li>Literal translation: each language is written, not converted.</li></ul></div>
+  </div>
+  <p class="bg-note" style="margin-block-start:20px">Devlo speaks the desk's language: intake, desk, on air, edition, rundown, breaking. Times are written as a rundown (06:00, 12:04).</p>
+</div></section>
+
+<section class="bg-sec" id="devlo"><div class="bg-wrap">
+  <h2>Devlo identity</h2>
+  <p>The Rundown D: a running order of story lines whose ends draw the bowl of a D. It continues the lines of the previous Devlo mark and the panel's own broadcast-studio sign-in («على الهواء»). The live variant lights the lead story in on-air red.</p>
+  <div class="grid">
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/devlo-logo.svg" alt="Devlo logo"></div><div class="cap">Primary <a href="../assets/img/brand/devlo-logo.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage paper"><img src="../assets/img/brand/devlo-logo-live.svg" alt="Devlo logo, live variant"></div><div class="cap">Live (lead story on air) <a href="../assets/img/brand/devlo-logo-live.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage night"><img src="../assets/img/brand/devlo-logo-reverse.svg" alt="Devlo logo on night"></div><div class="cap">Reverse <a href="../assets/img/brand/devlo-logo-reverse.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/devlo-mark.svg" alt="Devlo mark"></div><div class="cap">Mark (navigation, docs) <a href="../assets/img/brand/devlo-mark.svg" download>SVG</a></div></div>
+    <div class="tile"><div class="stage white"><img src="../assets/img/brand/devlo-favicon.svg" alt="Devlo app icon"></div><div class="cap">App icon / favicon <a href="../assets/img/brand/devlo-favicon.svg" download>SVG</a></div></div>
+  </div>
+  <h3>Application interface (out of this project's scope)</h3>
+  <p>The Devlo panel already uses indigo #5D5FEF / #7E80F8 (dark), page #F4F5FA / #0E1018 and red for on air. To align it with this identity later: replace <code class="k">logo-light.png</code>, <code class="k">logo-dark.png</code> and <code class="k">logo-icon.png</code> in <code class="k">public/assets/dashboard/images/</code> with exports of <code class="k">devlo-logo.svg</code>, <code class="k">devlo-logo-reverse.svg</code> and <code class="k">devlo-favicon.svg</code>; use the four lamp states (standby, draft, on air, published) for post status; keep Inter for panel UI and use Newsreader / Noto Naskh only for marketing headlines. No change to the panel was made here.</p>
+</div></section>
+
+<section class="bg-sec" id="link"><div class="bg-wrap">
+  <h2>Connecting the two</h2>
+  <div class="tbl"><table>
+    <tr><th>Rule</th><th>How</th></tr>
+    <tr><td>Endorsement</td><td>Devlo's logo is always followed by «by TakTek / من تاك تيك / TakTek'ten» in the shared mono, separated by a hairline. TakTek never appears inside the Devlo mark.</td></tr>
+    <tr><td>Shared DNA</td><td>Devlo's status lamps are the TakTek diamond. The endorsement lives in the product's own vocabulary.</td></tr>
+    <tr><td>On the corporate site</td><td>Devlo appears as a change of channel: paper, dot grid, indigo, serif headline. It never takes the ink or the signal.</td></tr>
+    <tr><td>Navigation</td><td>Corporate nav carries "Devlo CMS" with the Devlo mark; the Devlo page adds its own product bar with the demo action.</td></tr>
+    <tr><td>Calls to action</td><td>TakTek: start a project (signal). Devlo: open the demo / talk to the Devlo team (indigo). The contact form pre-selects "Devlo for a newsroom".</td></tr>
+    <tr><td>Languages</td><td>Both brands ship in Arabic, English and Turkish together; a new language is added to both at once.</td></tr>
+  </table></div>
+</div></section>
+
+<section class="bg-sec" id="a11y"><div class="bg-wrap">
+  <h2>Accessibility</h2>
+  <p>Target WCAG 2.2 AA. Every text colour pair on the site was measured against its surface: the lowest is 4.8:1 (white on the indigo button, the rundown time codes). Non-text marks such as lamps and seams are at least 3:1. Signal lime never carries text on light surfaces. Focus is a 2px blue ring on every interactive element; targets are at least 24×24px, primary buttons 48px. Every page sets <code class="k">lang</code> and <code class="k">dir</code>; mixed-script runs are isolated with <code class="k">&lt;bdi&gt;</code>; motion respects <code class="k">prefers-reduced-motion</code>.</p>
+</div></section>
+</main>
+</body>
+</html>
