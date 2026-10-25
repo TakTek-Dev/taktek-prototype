@@ -1,12 +1,15 @@
-// The hero in 3D: the diamond lattice as real tiles, and the T-Tak at its centre.
-// Tiles lift toward the pointer like parts being picked up; the two signal
-// diamonds fly in and click onto the stem; a click sends a ripple through the
-// lattice. Loaded by site.js after the page is up; the SVG lattice is the fallback.
+// The hero in 3D: TakTek's original wordmark «تاك تيك», extruded from its own
+// traced outlines, standing on a lattice of diamond tiles. The letters rise,
+// then the three pairs of diamond dots fly in and click into place; tiles lift
+// toward the pointer, and a click sends a ripple through them. Loaded by
+// site.js on the first mouse move or scroll; the SVG lattice is the fallback.
 import * as THREE from './vendor/three.module.min.js';
+import { SVGLoader } from './vendor/SVGLoader.js';
 
 const COLS = 9;
 const ROWS = 13;
 const S = 1; // lattice pitch in world units
+const LOGO_HEIGHT = 5.4; // world units
 
 const easeOutBack = (k, s = 1.7) => 1 + (s + 1) * Math.pow(k - 1, 3) + s * Math.pow(k - 1, 2);
 const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
@@ -33,7 +36,9 @@ function diamondGeometry(side, depth, radius) {
   return geo;
 }
 
-export default function start(canvas, art, delay = 0) {
+export default async function start(canvas, art, delay = 0) {
+  const svgText = await fetch(new URL(canvas.dataset.logo, document.baseURI)).then((r) => r.text());
+
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -50,74 +55,75 @@ export default function start(canvas, art, delay = 0) {
   const h = (ROWS + 1) * S / 2;
   const cx = w / 2;
   const cy = h / 2;
-  const markY = Math.floor(ROWS / 2) * S / 2 + S / 2;
-  const toWorld = (x, y) => new THREE.Vector2(x - cx, -(y - cy));
-
   const tiles = [];
-  const marks = [];
   for (let j = 0; j < ROWS; j++) {
     for (let i = 0; i <= COLS; i++) {
       const x = i * S + (j % 2 ? S / 2 : 0);
       const y = j * S / 2 + S / 2;
       if (x <= 0 || x >= w) continue;
-      const isMark = Math.abs(y - markY) < 1e-6 && Math.abs(Math.abs(x - cx) - S / 2) < 1e-6;
-      if (Math.abs(x - cx) < 1e-6 && !isMark) continue; // the stem's column stays open
-      const p = toWorld(x, y);
-      if (isMark) marks.push(p); else tiles.push({ base: p, z: 0, rx: 0, ry: 0, lift: 0, dist: p.length() });
+      const p = new THREE.Vector2(x - cx, -(y - cy));
+      tiles.push({ base: p, rx: 0, ry: 0, lift: 0, dist: p.length() });
     }
   }
-
   const side = (S / 2) * 0.86 * Math.SQRT2;
   const tileGeo = diamondGeometry(side, 0.16, side * 0.22);
   const tileMat = new THREE.MeshStandardMaterial({ color: 0x2b3531, metalness: 0.12, roughness: 0.52 });
   const field = new THREE.InstancedMesh(tileGeo, tileMat, tiles.length);
   field.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  field.position.z = -1.25; // far enough back that lifted tiles never reach the letters
   const baseColor = new THREE.Color(0x2b3531);
   const hotColor = new THREE.Color(0x56655e);
   const tmpColor = new THREE.Color();
   tiles.forEach((_, i) => field.setColorAt(i, baseColor));
   group.add(field);
 
-  // ---------------------------------------------------------------- the T-Tak
-  const markMat = new THREE.MeshPhysicalMaterial({
-    color: 0xd4f53c, roughness: 0.26, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.18,
-    emissive: 0x7a9e00, emissiveIntensity: 0.55,
+  // ---------------------------------------------------------------- the wordmark, from its own outlines
+  const limeMat = new THREE.MeshPhysicalMaterial({
+    color: 0xdfff00, roughness: 0.26, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.18,
+    emissive: 0x6f8a00, emissiveIntensity: 0.35,
   });
-  const markGeo = diamondGeometry(side * 1.04, 0.42, side * 0.24);
-  const dots = marks.sort((a, b) => a.x - b.x).map((p, k) => {
-    const mesh = new THREE.Mesh(markGeo, markMat);
-    mesh.userData = { home: p.clone(), from: new THREE.Vector3(k ? 9 : -9, 1.2, 3), spin: k ? -1 : 1 };
-    group.add(mesh);
-    return mesh;
-  });
-
-  const stemMat = new THREE.MeshPhysicalMaterial({ color: 0xf3f5f4, roughness: 0.32, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
-  const r = S * 0.21;
-  const v = (x, y) => { const p = toWorld(x, y); return new THREE.Vector3(p.x, p.y, 0.05); };
-  const top = new THREE.LineCurve3(v(cx, markY - S * 3.1), v(cx, markY - S * 0.62));
-  const lower = new THREE.CurvePath();
-  lower.add(new THREE.LineCurve3(v(cx, markY + S * 0.62), v(cx, markY + S * 2.0)));
-  lower.add(new THREE.QuadraticBezierCurve3(v(cx, markY + S * 2.0), v(cx, markY + S * 2.75), v(cx + S * 0.75, markY + S * 2.75)));
-  lower.add(new THREE.LineCurve3(v(cx + S * 0.75, markY + S * 2.75), v(cx + S * 1.05, markY + S * 2.75)));
-  const stem = new THREE.Group();
-  const capGeo = new THREE.SphereGeometry(r, 20, 14);
-  [top, lower].forEach((curve) => {
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, curve === top ? 8 : 48, r, 18), stemMat);
-    stem.add(tube);
-    [curve.getPoint(0), curve.getPoint(1)].forEach((pt) => {
-      const cap = new THREE.Mesh(capGeo, stemMat);
-      cap.position.copy(pt);
-      stem.add(cap);
+  limeMat.toneMapped = false; // keep the original lime exact; ACES would wash it out
+  const whiteMat = new THREE.MeshPhysicalMaterial({ color: 0xf5f7f6, roughness: 0.3, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 });
+  const svg = new SVGLoader().parse(svgText);
+  const vb = svg.xml.getAttribute('viewBox').split(/\s+/).map(Number);
+  const k = LOGO_HEIGHT / vb[3];
+  const logo = new THREE.Group();
+  logo.scale.set(k, -k, k); // SVG y runs down
+  logo.position.set(-(vb[0] + vb[2] / 2) * k, (vb[1] + vb[3] / 2) * k, 0);
+  group.add(logo);
+  const depth = 0.36 / k;
+  const letters = [];
+  const dots = [];
+  svg.paths.forEach((path, n) => {
+    const node = path.userData.node;
+    const kind = node.getAttribute('data-kind');
+    const lime = node.getAttribute('data-colour') === 'lime';
+    const geo = new THREE.ExtrudeGeometry(SVGLoader.createShapes(path), {
+      depth, bevelEnabled: true, bevelThickness: depth * 0.12, bevelSize: depth * 0.08, bevelSegments: 3, curveSegments: 10,
     });
+    geo.computeBoundingBox();
+    const centre = geo.boundingBox.getCenter(new THREE.Vector3());
+    geo.translate(-centre.x, -centre.y, -depth / 2); // animate each part about its own centre
+    const mesh = new THREE.Mesh(geo, lime ? limeMat : whiteMat);
+    mesh.position.set(centre.x, centre.y, 0);
+    mesh.userData = { home: mesh.position.clone(), n };
+    logo.add(mesh);
+    (kind === 'dots' ? dots : letters).push(mesh);
   });
-  group.add(stem);
+  // dots fly in from the side they sit nearest, one pair after another
+  dots.sort((a, b) => a.userData.home.y - b.userData.home.y).forEach((dot, i) => {
+    const fromRight = dot.userData.home.x > vb[0] + vb[2] / 2;
+    dot.userData.from = new THREE.Vector3(dot.userData.home.x + (fromRight ? 1 : -1) * 5200, dot.userData.home.y - 600, 2600);
+    dot.userData.at = 0.75 + i * 0.22;
+    dot.userData.landed = false;
+  });
 
   // ---------------------------------------------------------------- light
   scene.add(new THREE.HemisphereLight(0xffffff, 0x1b2220, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  const key = new THREE.DirectionalLight(0xffffff, 1.7);
   key.position.set(4, 6, 9);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xd4f53c, 0.9);
+  const rim = new THREE.DirectionalLight(0xdfff00, 0.9);
   rim.position.set(-7, -3, -5);
   scene.add(rim);
   const torch = new THREE.PointLight(0xffffff, 0, 7, 1.6); // follows the pointer
@@ -131,6 +137,8 @@ export default function start(canvas, art, delay = 0) {
   const hit = new THREE.Vector3();
   const pointer = { on: false, world: new THREE.Vector2(99, 99), nx: 0, ny: 0 };
   const ripples = [];
+  const clock = new THREE.Clock();
+  let clickAt = -10;
   const toLocal = (e) => {
     const box = canvas.getBoundingClientRect();
     ndc.set(((e.clientX - box.left) / box.width) * 2 - 1, -((e.clientY - box.top) / box.height) * 2 + 1);
@@ -165,53 +173,47 @@ export default function start(canvas, art, delay = 0) {
   resize();
 
   let visible = true;
+  let raf = 0;
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) loop(); }).observe(canvas);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loop(); });
 
   // ---------------------------------------------------------------- animation
-  const clock = new THREE.Clock();
   const t0 = delay / 1000;
-  let clickAt = -10;
-  let landed = false;
-  let raf = 0;
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
   const e3 = new THREE.Euler();
   const pos = new THREE.Vector3();
   const scl = new THREE.Vector3();
+  const logoToGroup = new THREE.Vector3();
 
   function frame() {
     raf = 0;
     if (!visible || document.hidden) return;
     const t = clock.getElapsedTime() - t0;
+    const now = clock.getElapsedTime();
     const heroOut = clamp01(window.scrollY / Math.max(1, art.getBoundingClientRect().height));
 
-    // group follows the pointer, with a slow sway when idle
     const tx = pointer.on ? pointer.nx * 0.28 : Math.sin(t * 0.35) * 0.08;
     const ty = pointer.on ? -pointer.ny * 0.2 : Math.cos(t * 0.3) * 0.05;
     group.rotation.y += (tx - group.rotation.y) * 0.06;
     group.rotation.x += (ty + heroOut * 0.55 - group.rotation.x) * 0.06;
     group.position.y = heroOut * 1.4;
-
     torch.intensity += ((pointer.on ? 7 : 0) - torch.intensity) * 0.1;
     torch.position.set(pointer.world.x, pointer.world.y, 2.2);
 
     // tiles: rise in from the centre, lift near the pointer, ride ripples
-    const now = clock.getElapsedTime();
     tiles.forEach((tile, i) => {
-      const k = clamp01((t - tile.dist * 0.06) / 0.7);
-      const appear = k <= 0 ? 0 : easeOutBack(k, 1.4);
+      const kk = clamp01((t - tile.dist * 0.06) / 0.7);
+      const appear = kk <= 0 ? 0 : easeOutBack(kk, 1.4);
       const d = pointer.on ? tile.base.distanceTo(pointer.world) : 99;
       const near = Math.exp(-(d * d) / (2 * 1.15 * 1.15));
       let wave = 0;
       for (const rp of ripples) {
         const age = now - rp.t;
-        const front = age * 7;
         const dd = Math.hypot(tile.base.x - rp.x, tile.base.y - rp.y);
-        wave += Math.exp(-((dd - front) ** 2) / 0.5) * Math.max(0, 1 - age / 1.6);
+        wave += Math.exp(-((dd - age * 7) ** 2) / 0.5) * Math.max(0, 1 - age / 1.6);
       }
-      const lift = near * 0.85 + wave * 0.9;
-      tile.lift += (lift - tile.lift) * 0.14;
+      tile.lift += (near * 0.85 + wave * 0.9 - tile.lift) * 0.14;
       tile.rx += (((pointer.world.y - tile.base.y) * near * 0.5) - tile.rx) * 0.12;
       tile.ry += ((-(pointer.world.x - tile.base.x) * near * 0.5) - tile.ry) * 0.12;
       pos.set(tile.base.x, tile.base.y, -2.2 * (1 - appear) + tile.lift);
@@ -227,22 +229,29 @@ export default function start(canvas, art, delay = 0) {
     field.instanceColor.needsUpdate = true;
     for (let i = ripples.length - 1; i >= 0; i--) if (now - ripples[i].t > 1.8) ripples.splice(i, 1);
 
-    // the stem grows, then the two dots fly in and click onto it
-    const g = easeOutCubic(clamp01((t - 0.15) / 0.6));
-    stem.scale.set(1, Math.max(0.001, g), 1);
-    const fly = clamp01((t - 0.45) / 0.75);
-    const f = easeOutBack(fly, 2.1);
-    if (!landed && fly >= 1) {
-      landed = true;
-      ripples.push({ x: 0, y: toWorld(cx, markY).y, t: now });
-      clickAt = now;
-    }
+    // letters rise into place
+    letters.forEach((mesh, i) => {
+      const r = easeOutCubic(clamp01((t - 0.1 - i * 0.07) / 0.7));
+      mesh.position.z = (1 - r) * -1800;
+      mesh.scale.setScalar(0.85 + 0.15 * r);
+      mesh.visible = r > 0;
+    });
+
+    // dots fly in and click, one pair after another
     const pulse = Math.max(0, 1 - (now - clickAt) / 0.35);
     dots.forEach((dot) => {
-      const { home, from, spin } = dot.userData;
-      dot.position.set(from.x + (home.x - from.x) * f, from.y + (home.y - from.y) * f, from.z * (1 - f) + 0.08 + Math.sin(now * 1.6) * 0.04);
-      dot.rotation.set(0, (1 - f) * spin * 2.5, (1 - f) * spin * 3);
+      const { home, from, at } = dot.userData;
+      const fly = clamp01((t - at) / 0.6);
+      const f = easeOutBack(fly, 2.1);
+      dot.position.set(from.x + (home.x - from.x) * f, from.y + (home.y - from.y) * f, from.z * (1 - fly) + Math.sin(now * 1.6 + home.y) * 24);
+      dot.rotation.set(0, (1 - f) * 2.4, (1 - f) * 3);
       dot.scale.setScalar(1 - pulse * 0.16);
+      if (!dot.userData.landed && fly >= 1) {
+        dot.userData.landed = true;
+        logoToGroup.copy(home).applyMatrix4(logo.matrix);
+        ripples.push({ x: logoToGroup.x, y: logoToGroup.y, t: now });
+        clickAt = now;
+      }
     });
 
     renderer.render(scene, camera);
@@ -258,7 +267,8 @@ export default function start(canvas, art, delay = 0) {
   return () => {
     cancelAnimationFrame(raf);
     renderer.dispose();
-    [tileGeo, markGeo, capGeo].forEach((geo) => geo.dispose());
-    [tileMat, markMat, stemMat].forEach((mat) => mat.dispose());
+    tileGeo.dispose();
+    [...letters, ...dots].forEach((mesh) => mesh.geometry.dispose());
+    [tileMat, limeMat, whiteMat].forEach((mat) => mat.dispose());
   };
 }
