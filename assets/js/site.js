@@ -56,7 +56,7 @@
   }
 
   // The click loader runs once per session (decided in <head>); clear it once the curtain has opened.
-  if (root.classList.contains('intro-on')) setTimeout(() => root.classList.remove('intro-on'), 1800);
+  if (root.classList.contains('intro-on')) setTimeout(() => root.classList.remove('intro-on'), 1950);
 
   const canObserve = 'IntersectionObserver' in window && !reduceMotion;
   const onceInView = (els, fn, options = { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }) => {
@@ -226,7 +226,7 @@
   if (heroCanvas && !reduceMotion && !(navigator.connection && navigator.connection.saveData) && (navigator.deviceMemory || 4) >= 2) {
     // import() resolves against this script, not the page, so make the URL absolute first
     const start = () => import(new URL(heroCanvas.dataset.module, document.baseURI).href)
-      .then((mod) => mod.default(heroCanvas, heroCanvas.closest('[data-hero-art]'), root.classList.contains('intro-on') ? 1150 : 0))
+      .then((mod) => mod.default(heroCanvas, heroCanvas.closest('[data-hero-art]'), root.classList.contains('intro-on') ? 1300 : 0))
       .catch(() => { /* WebGL or module unavailable: the SVG lattice remains */ });
     // Wait for the visitor's first mouse move or scroll, so parsing Three.js never competes with page load.
     // Taps and keys are left out on purpose: work right after them would delay their response.
