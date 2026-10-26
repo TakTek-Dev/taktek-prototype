@@ -222,8 +222,9 @@
   });
 
   // Tiko, TakTek's assistant: the portal's TikoAvatar.vue, driven here by classes (st-*).
-  // He says hello, speaks his lines, follows the cursor with his eyes, replies to a hover
-  // or a tap, fuses his eyes into the wordmark's dots on three quick taps, and rests when left alone.
+  // He says hello, reads his lines as they appear, turns towards the cursor, replies to a hover
+  // or a tap, fuses his eyes into the wordmark's dots on three quick taps, has a tak-tek habit
+  // when left alone, and rests after a while.
   const tiko = document.querySelector('[data-tiko]');
   if (tiko) {
     const bubble = document.querySelector('[data-tiko-bubble]');
@@ -309,10 +310,15 @@
     }, { passive: true });
 
     if (!reduceMotion) {
+      const shut = () => {
+        tiko.classList.add('is-blink');
+        setTimeout(() => tiko.classList.remove('is-blink'), 110);
+      };
+      // now and then a double blink, as people do
       const blink = () => setTimeout(() => {
         if (!override || override === 'notice') {
-          tiko.classList.add('is-blink');
-          setTimeout(() => tiko.classList.remove('is-blink'), 110);
+          shut();
+          if (Math.random() < 0.2) setTimeout(shut, 240);
         }
         blink();
       }, 2200 + Math.random() * 3800);
@@ -321,6 +327,10 @@
         const quiet = Date.now() - lastActivity;
         if (!override && quiet > 20000) { override = 'rest'; apply(); }
         if (!override && quiet > 3000 && Math.random() < 0.35) setEyes(Math.random() * 8 - 4, Math.random() * 4 - 2);
+        if (!override && quiet > 6000 && Math.random() < 0.08) {
+          tiko.classList.add('is-tick');
+          setTimeout(() => tiko.classList.remove('is-tick'), 900);
+        }
       }, 1800);
     }
 

@@ -731,35 +731,43 @@ html[lang="ar"] .hero-hint { font-family: var(--f-sans); }
 .tk--compact { --tk-dx: 15px; --tk-es: 1.12; --tk-meet: 4.54px; }
 .tk.is-interactive { cursor: pointer; }
 .tk svg { display: block; inline-size: 100%; block-size: 100%; overflow: visible; direction: ltr; }
+/* at stage size he turns in depth towards the cursor */
+.tk--big svg { transform: perspective(520px) rotateY(calc(var(--ex) * 1.5deg)) rotateX(calc(var(--ey) * -1.5deg)); transition: transform 420ms ease-out; }
 .tk-tile { fill: var(--tk-tile); }
 .tk-rim { fill: none; stroke: var(--tk-rim); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .tk-ring { fill: none; stroke: var(--tk-tile); stroke-width: 2px; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .tk-body { transform-box: fill-box; transform-origin: 50% 62%; transition: transform 320ms var(--tk-snap); }
 .tk-move { transform-box: fill-box; transform-origin: 50% 100%; }
+/* the tile leans a little towards where he looks and the eyes travel further, so the face has depth */
+.tk-turn { transform-box: fill-box; transform-origin: center; transform: translate(calc(var(--ex) * .35px), calc(var(--ey) * .35px)) rotate(calc(var(--ex) * .45deg)); transition: transform 320ms ease-out; }
 .tk-look { transform: translate(calc((var(--ex) + var(--lx, 0)) * 1px), calc((var(--ey) + var(--ly, 0)) * 1px)); transition: transform 200ms ease-out; }
 .tk-eye-a { transform: translate(calc(50px - var(--tk-dx)), 49px) scale(var(--tk-es)); }
 .tk-eye-b { transform: translate(calc(50px + var(--tk-dx)), 49px) scale(var(--tk-es)); }
 .tk-tak { transform: translate(50px, 49px) scale(var(--tk-es)); fill: var(--tk-eye); opacity: 0; transition: opacity 120ms; }
 .tk-e { transform-box: fill-box; transform-origin: center; transition: transform 300ms var(--tk-snap), opacity 160ms; }
 .tk-dot { fill: var(--tk-eye); transform-box: fill-box; transform-origin: center; transition: transform 140ms ease, opacity 140ms; }
-.tk-smile { fill: none; stroke: var(--tk-eye); stroke-width: 4.4px; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 140ms; }
+.tk-smile { fill: none; stroke: var(--tk-eye); stroke-width: 5px; stroke-linecap: round; opacity: 0; transition: opacity 140ms; }
+.tk--compact .tk-smile { stroke-width: 5.6px; }
 .tk.is-blink .tk-dot { transform: scaleY(.1); transition-duration: 70ms; }
 
-/* listening: the eyes drop to the field being typed in */
+/* listening: curious. The head tilts, one eye opens wider, the eyes drop to the field, and each keystroke gets a small nod */
 .tk.st-listen { --ly: 3; }
-.tk.st-listen .tk-e { transform: scale(1.06); }
-/* thinking: the eyes tick a quarter turn in turn, tak then tek */
+.tk.st-listen .tk-body { transform: rotate(calc(-4deg * var(--tk-dir))); }
+.tk.st-listen .tk-eye-a .tk-e { transform: scale(1.12); }
+.tk.st-listen .tk-eye-b .tk-e { transform: translateY(.6px) scale(.95); }
+.tk.is-nod .tk-move { animation: tk-nodlet 260ms var(--tk-snap); }
+/* thinking: the eyes look up and tick a quarter turn in turn, tak then tek */
 .tk.st-think { --lx: 2; --ly: -2; }
 .tk.st-think .tk-e { animation: tk-tick 1.3s var(--tk-snap) infinite; }
 .tk.st-think .tk-eye-b .tk-e { animation-delay: .65s; }
-/* responding: a soft cadence while the answer types out */
-.tk.st-say .tk-e { animation: tk-say 560ms ease-in-out infinite alternate; }
-.tk.st-say .tk-eye-b .tk-e { animation-delay: -280ms; }
-/* hello and a job well done: the eyes smile; hello adds a nod, success a hop */
-.tk.st-greet .tk-dot, .tk.st-happy .tk-dot { opacity: 0; transform: scaleY(.3); }
-.tk.st-greet .tk-smile, .tk.st-happy .tk-smile { opacity: 1; }
-.tk.st-greet .tk-move { animation: tk-nod 900ms var(--tk-snap); }
-.tk.st-happy .tk-move { animation: tk-hop 520ms var(--tk-snap); }
+/* answering: the eyes read along the line as it types out, in the page's own direction */
+.tk.st-say .tk-look { animation: tk-read 1.8s ease-in-out infinite; }
+/* the smiling eyes: hello adds a nod, a job done well a hop, warmth a held tilt */
+.tk.st-greet .tk-dot, .tk.st-happy .tk-dot, .tk.st-warm .tk-dot { opacity: 0; transform: scaleY(.3); }
+.tk.st-greet .tk-smile, .tk.st-happy .tk-smile, .tk.st-warm .tk-smile { opacity: 1; }
+.tk.st-greet .tk-move { animation: tk-hello 1s var(--tk-snap); }
+.tk.st-happy .tk-move { animation: tk-hop 620ms ease-out; }
+.tk.st-warm .tk-body { transform: translateY(1px) rotate(calc(-7deg * var(--tk-dir))); }
 /* done: the eyes slide together and fuse into the wordmark's own dots */
 .tk.st-done .tk-eye-a .tk-e { transform: translateX(var(--tk-meet)); }
 .tk.st-done .tk-eye-b .tk-e { transform: translateX(calc(var(--tk-meet) * -1)); }
@@ -778,7 +786,7 @@ html[lang="ar"] .hero-hint { font-family: var(--f-sans); }
 .tk.st-attend .tk-e { transform: scale(1.1); }
 .tk.st-attend .tk-body { transform: rotate(calc(3deg * var(--tk-dir))); }
 .tk.st-surprise .tk-e { transform: scale(1.22); }
-.tk.st-surprise .tk-move { animation: tk-hop 480ms var(--tk-snap); }
+.tk.st-surprise .tk-move { animation: tk-hop 520ms ease-out; }
 /* resting: eyes closed to a line, a slow breath */
 .tk.st-rest .tk-dot { transform: scaleY(.22); }
 .tk.st-rest .tk-e { opacity: .8; }
@@ -787,12 +795,22 @@ html[lang="ar"] .hero-hint { font-family: var(--f-sans); }
 /* the small replies to a pointer: a hover widens the eyes, a tap presses the tile */
 .tk.st-notice .tk-e { transform: scale(1.12); }
 .tk.st-press .tk-move { animation: tk-press 340ms var(--tk-snap); }
+/* his habit when left alone a while: one tak-tek of the eyes, like a clock */
+.tk.is-tick .tk-eye-a .tk-e { animation: tk-tick 700ms var(--tk-snap); }
+.tk.is-tick .tk-eye-b .tk-e { animation: tk-tick 700ms var(--tk-snap) 170ms; }
 .tk.is-paused * { animation-play-state: paused !important; }
 
 @keyframes tk-tick { 0% { transform: rotate(0); } 28%, 100% { transform: rotate(90deg); } }
-@keyframes tk-say { to { transform: scale(.82); } }
-@keyframes tk-nod { 30% { transform: rotate(-9deg); } 62% { transform: rotate(5deg); } }
-@keyframes tk-hop { 40% { transform: translateY(-7px); } }
+@keyframes tk-read {
+  0%, 20% { transform: translate(calc(-3px * var(--tk-dir)), 0); }
+  26%, 46% { transform: translate(calc(-1px * var(--tk-dir)), .4px); }
+  52%, 72% { transform: translate(calc(1px * var(--tk-dir)), 0); }
+  78%, 92% { transform: translate(calc(3px * var(--tk-dir)), .4px); }
+  100% { transform: translate(calc(-3px * var(--tk-dir)), 0); }
+}
+@keyframes tk-nodlet { 45% { transform: translateY(1.6px) scale(1.02, .97); } }
+@keyframes tk-hello { 15% { transform: translateY(1.5px) scale(1.05, .93); } 38% { transform: translateY(-5px) scale(.97, 1.04) rotate(calc(-7deg * var(--tk-dir))); } 64% { transform: rotate(calc(4deg * var(--tk-dir))); } }
+@keyframes tk-hop { 18% { transform: translateY(1px) scale(1.05, .94); } 45% { transform: translateY(-7px) scale(.97, 1.04); } 72% { transform: translateY(0) scale(1.03, .97); } }
 @keyframes tk-pop { 40% { transform: scale(1.06); } }
 @keyframes tk-ring { from { opacity: .45; transform: scale(1); } to { opacity: 0; transform: scale(1.34); } }
 @keyframes tk-shake { 20% { transform: translateX(-2.5px); } 45% { transform: translateX(2px); } 70% { transform: translateX(-1px); } }
@@ -801,6 +819,7 @@ html[lang="ar"] .hero-hint { font-family: var(--f-sans); }
 @media (prefers-reduced-motion: reduce) {
   .tk *, .tk { animation: none !important; transition-duration: 1ms !important; transition-delay: 0s !important; }
   .tk.st-think .tk-e { transform: rotate(45deg); }
+  .tk--big svg, .tk-turn { transform: none; }
 }
 
 /* headline words rise into place (whole words, so Arabic joins stay intact) */
