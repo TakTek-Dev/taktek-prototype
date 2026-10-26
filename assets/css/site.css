@@ -705,6 +705,7 @@ li:hover > .ico .acc, a:hover > .ico .acc, .svc:hover .ico .acc, .step:hover .ic
 
 /* ------------------------------------------------------------ hero: Tiko over the lattice */
 .hero-art { min-block-size: 0; }
+.project-form .hp { position: absolute; inset-inline-start: -9999px; inline-size: 1px; block-size: 1px; overflow: hidden; }
 .tiko-stage { position: absolute; inset: 0; display: grid; place-items: center; padding-block-start: 9%; pointer-events: none; }
 .tiko-stage .tk { inline-size: clamp(160px, 42%, 270px); block-size: auto; aspect-ratio: 1; pointer-events: auto; border-radius: 28%; animation: tk-float 6s ease-in-out infinite; will-change: transform; }
 .tiko-stage .tk.is-paused { animation-play-state: paused; }
