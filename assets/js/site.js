@@ -221,24 +221,110 @@
     }));
   });
 
-  // Hero in 3D: loaded once the visitor engages, only where it will run well. The SVG lattice stays otherwise.
-  const heroCanvas = document.querySelector('[data-hero-3d]');
-  if (heroCanvas && !reduceMotion && !(navigator.connection && navigator.connection.saveData) && (navigator.deviceMemory || 4) >= 2) {
-    // import() resolves against this script, not the page, so make the URL absolute first
-    const start = () => import(new URL(heroCanvas.dataset.module, document.baseURI).href)
-      .then((mod) => mod.default(heroCanvas, heroCanvas.closest('[data-hero-art]'), root.classList.contains('intro-on') ? 1300 : 0))
-      .catch(() => { /* WebGL or module unavailable: the SVG lattice remains */ });
-    // Wait for the visitor's first mouse move or scroll, so parsing Three.js never competes with page load.
-    // Taps and keys are left out on purpose: work right after them would delay their response.
-    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-    const kick = (event) => {
-      if (event.type === 'pointermove' && event.pointerType !== 'mouse') return;
-      removeEventListener('pointermove', kick);
-      removeEventListener('scroll', kick);
-      idle(start);
+  // Tiko, the portal's assistant, ported from TikoAvatar.vue: the same moods, driven by classes.
+  // He waves hello, follows the cursor with his eyes, reacts to a hover or a tap,
+  // gets dizzy on three quick taps, and dozes off when left alone.
+  const tiko = document.querySelector('[data-tiko]');
+  if (tiko) {
+    const bubble = document.querySelector('[data-tiko-bubble]');
+    const lines = bubble ? JSON.parse(bubble.dataset.lines) : [];
+    const cells = [...document.querySelectorAll('[data-lattice] .cell')];
+    let override = null;
+    let overrideTimer = 0;
+    let clicks = [];
+    let lastActivity = Date.now();
+
+    const apply = () => {
+      tiko.className = tiko.className.replace(/\bst-\S+/g, '').trim() + ` st-${override || 'idle'}`;
     };
-    addEventListener('pointermove', kick, { passive: true });
-    addEventListener('scroll', kick, { passive: true });
+    const react = (state, ms) => {
+      clearTimeout(overrideTimer);
+      override = state;
+      apply();
+      if (ms) overrideTimer = setTimeout(() => { override = null; apply(); }, ms);
+    };
+    const setEyes = (x, y) => {
+      tiko.style.setProperty('--ex', x.toFixed(2));
+      tiko.style.setProperty('--ey', y.toFixed(2));
+    };
+
+    // the speech bubble walks through Tiko's lines once, then steps aside
+    let lineTimer = 0;
+    const speak = (from = 0) => {
+      if (!bubble || !lines.length) return;
+      clearTimeout(lineTimer);
+      let i = from;
+      const next = () => {
+        if (i >= lines.length) { bubble.classList.remove('is-on'); return; }
+        bubble.textContent = lines[i++];
+        bubble.classList.remove('is-on');
+        void bubble.offsetWidth;
+        bubble.classList.add('is-on');
+        lineTimer = setTimeout(next, reduceMotion ? 6000 : 3600);
+      };
+      next();
+    };
+
+    // a tap sends a ripple through the lattice, out from Tiko
+    const ripple = () => {
+      if (reduceMotion) return;
+      cells.forEach((cell) => {
+        const d = Math.hypot(cell.dataset.x - 288, cell.dataset.y - 224);
+        cell.style.transitionDelay = `${Math.round(d * 1.4)}ms`;
+        cell.classList.add('is-wave');
+        setTimeout(() => { cell.classList.remove('is-wave'); cell.style.transitionDelay = ''; }, 260 + d * 1.4);
+      });
+    };
+
+    const tap = () => {
+      lastActivity = Date.now();
+      const now = Date.now();
+      clicks = [...clicks.filter((time) => now - time < 900), now];
+      if (override === 'sleep') react('surprised', 900);
+      else if (clicks.length >= 3) { clicks = []; react('dizzy', 2200); }
+      else react('giggle', 600);
+      ripple();
+    };
+    tiko.addEventListener('click', tap);
+    tiko.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tap(); }
+    });
+    tiko.addEventListener('mouseenter', () => { if (!override) react('notice', 900); });
+
+    document.addEventListener('pointermove', (event) => {
+      lastActivity = Date.now();
+      if (override === 'sleep') { react('surprised', 900); return; }
+      const box = tiko.getBoundingClientRect();
+      const dx = event.clientX - (box.left + box.width / 2);
+      const dy = event.clientY - (box.top + box.height * 0.48);
+      const distance = Math.hypot(dx, dy) || 1;
+      const reach = Math.min(1, distance / 260);
+      setEyes((dx / distance) * 9 * reach, (dy / distance) * 7 * reach);
+    }, { passive: true });
+
+    if (!reduceMotion) {
+      const blink = () => setTimeout(() => {
+        if (!['sleep', 'happy', 'love', 'dizzy'].includes(override)) {
+          tiko.classList.add('blink');
+          setTimeout(() => tiko.classList.remove('blink'), 130);
+        }
+        blink();
+      }, 2200 + Math.random() * 3800);
+      blink();
+      setInterval(() => {
+        const quiet = Date.now() - lastActivity;
+        if (!override && quiet > 20000) { override = 'sleep'; apply(); }
+        if (!override && quiet > 3000 && Math.random() < 0.35) setEyes(Math.random() * 16 - 8, Math.random() * 8 - 4);
+      }, 1800);
+    }
+
+    // Tiko rests while the hero is off screen
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([entry]) => tiko.classList.toggle('is-paused', !entry.isIntersecting)).observe(tiko);
+    }
+
+    // hello: a wave and the first line, once the loader (if any) has opened
+    setTimeout(() => { react('wave', 2400); speak(); }, root.classList.contains('intro-on') ? 1500 : 500);
   }
 
   // Hero lattice: cells near the pointer brighten, like parts being picked up.
