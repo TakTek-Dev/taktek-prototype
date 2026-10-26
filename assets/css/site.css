@@ -706,7 +706,10 @@ li:hover > .ico .acc, a:hover > .ico .acc, .svc:hover .ico .acc, .step:hover .ic
 /* ------------------------------------------------------------ hero: Tiko over the lattice */
 .hero-art { min-block-size: 0; }
 .tiko-stage { position: absolute; inset: 0; display: grid; place-items: center; padding-block-start: 9%; pointer-events: none; }
-.tiko-stage .tk { inline-size: clamp(210px, 56%, 380px); block-size: auto; aspect-ratio: 1; pointer-events: auto; border-radius: 50%; }
+.tiko-stage .tk { inline-size: clamp(150px, 40%, 250px); block-size: auto; aspect-ratio: 1; pointer-events: auto; border-radius: 28%; animation: tk-float 6s ease-in-out infinite; will-change: transform; }
+.tiko-stage .tk.is-paused { animation-play-state: paused; }
+@keyframes tk-float { 50% { transform: translateY(-3%); } }
+@media (prefers-reduced-motion: reduce) { .tiko-stage .tk { animation: none; } }
 .tiko-stage .tk:focus-visible { outline: 2px solid var(--tt-signal); outline-offset: 6px; }
 .tiko-bubble { position: absolute; z-index: 2; inset-block-start: 2%; inset-inline-end: 2%; max-inline-size: min(270px, 62%); padding: 12px 16px; border-radius: 18px 18px 18px 6px; background: #fff; color: var(--tt-ink); font-weight: 600; font-size: .9375rem; line-height: 1.45; box-shadow: 0 18px 40px -18px rgba(0,0,0,.6); opacity: 0; transform: translateY(6px) scale(.96); transition: opacity 260ms ease, transform 360ms var(--ease-snap); }
 [dir="rtl"] .tiko-bubble { border-radius: 18px 18px 6px 18px; }
@@ -719,150 +722,86 @@ html[lang="ar"] .hero-hint { font-family: var(--f-sans); }
 .portal-band .tk-small { inline-size: 92px; block-size: 92px; }
 @media (min-width: 900px) { .portal-band { grid-template-columns: auto minmax(0, 1fr) auto; } }
 
-/* Tiko's own styles, copied unchanged from TikoAvatar.vue (portal, commit b1faa70) */
-.tk { display: inline-block; flex-shrink: 0; position: relative; -webkit-tap-highlight-color: transparent; }
+/* Tiko: an ink tile whose eyes are the wordmark's dot pair, split in two (tiko.py, tools/tiko_geom.py).
+   The state is a class (st-*); every move uses the click and runs on transforms only. */
+.tk { --tk-tile: #101413; --tk-eye: #dfff00; --tk-rim: rgb(255 255 255 / .12); --tk-dx: 16px; --tk-es: 1; --tk-meet: 7.14px; --tk-dir: 1; --tk-snap: cubic-bezier(.3, 1.45, .55, 1); --ex: 0; --ey: 0;
+  display: inline-block; flex-shrink: 0; position: relative; inline-size: 48px; block-size: 48px; -webkit-tap-highlight-color: transparent; }
+[dir="rtl"] .tk { --tk-dir: -1; }
+.tk--signal { --tk-tile: #dfff00; --tk-eye: #101413; --tk-rim: rgb(16 20 19 / .16); }
+.tk--compact { --tk-dx: 15px; --tk-es: 1.12; --tk-meet: 4.54px; }
 .tk.is-interactive { cursor: pointer; }
-.tk svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.tk *:not([transform]) { transform-box: fill-box; transform-origin: center; }
-.tk .alt { opacity: 0; transition: opacity 0.18s; }
-.tk .float { animation: tk-float 3.8s ease-in-out infinite; }
-.tk .shadow { animation: tk-shadow 3.8s ease-in-out infinite; }
-.tk .thrust { animation: tk-thrust 1.6s ease-in-out infinite; }
-.tk .ring { animation: tk-spin 9s linear infinite; }
-.tk .tip-glow { animation: tk-glow 2.6s ease-in-out infinite; }
-.tk .antenna { transform-origin: 50% 100%; }
-.tk .head-g { transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1); }
-.tk .eyes { transform: translate(calc(var(--ex) * 1px), calc(var(--ey) * 1px)); transition: transform 0.14s ease-out; }
-.tk .eye-set { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.tk .eye-n { transition: transform 0.09s; }
-.tk.blink .eye-n { transform: scaleY(0.08); }
-.tk .talk rect { animation: tk-talk 0.5s ease-in-out infinite; }
-.tk .talk rect:nth-child(2) { animation-delay: 0.1s; }
-.tk .talk rect:nth-child(3) { animation-delay: 0.22s; }
-.tk .talk rect:nth-child(4) { animation-delay: 0.05s; }
-.tk .talk rect:nth-child(5) { animation-delay: 0.16s; }
-.tk .hand-r, .tk .hand-l { transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), opacity 0.2s; transform: scale(0.4); }
-/* Moods */
-.tk.st-listening .head-g { transform: rotate(-7deg) translateY(2px); }
-.tk.st-listening .eye-set { transform: scale(1.12); }
-.tk.st-listening .ring { animation-duration: 2s; }
-.tk.st-listening .tip-glow { animation-duration: 0.8s; }
-.tk.st-thinking .eyes { transform: translate(7px, -7px); }
-.tk.st-thinking .eye-set { transform: scaleY(0.72); }
-.tk.st-thinking .scan, .tk.st-thinking .orbit { opacity: 1; }
-.tk.st-thinking .scan { animation: tk-scan 1.4s ease-in-out infinite; }
-.tk.st-thinking .orbit { animation: tk-spin 1s linear infinite; }
-.tk.st-thinking .float { animation-duration: 5s; }
-.tk.st-thinking .ring { animation-duration: 1.2s; }
-.tk.st-talking .mouth { opacity: 0; }
-.tk.st-talking .talk { opacity: 1; }
-.tk.st-happy .eye-n, .tk.st-wave .eye-n, .tk.st-giggle .eye-n { opacity: 0; }
-.tk.st-happy .eye-h, .tk.st-wave .eye-h, .tk.st-giggle .eye-h { opacity: 1; }
-.tk.st-happy .float { animation: tk-bounce 0.75s ease-in-out infinite; }
-.tk.st-happy .blush, .tk.st-love .blush, .tk.st-giggle .blush { opacity: 1; }
-.tk.st-happy .spark { opacity: 1; animation: tk-spark 1.2s ease-in-out infinite; }
-.tk.st-wave .hand-r { opacity: 1; transform: scale(1) translate(0, -26px); }
-.tk.st-wave .hand-r .mitt { animation: tk-wave 0.42s ease-in-out infinite alternate; transform-origin: 50% 100%; }
-.tk.st-wave .head-g { transform: rotate(5deg); }
-.tk.st-surprised .eye-set { transform: scale(1.38); }
-.tk.st-surprised .mouth { opacity: 0; }
-.tk.st-surprised .mouth-o { opacity: 1; }
-.tk.st-surprised .antenna { animation: tk-spring 0.6s ease-out; }
-.tk.st-surprised .float { animation: tk-hop 0.6s ease-out; }
-.tk.st-sorry .head-g { transform: translateY(5px) rotate(-5deg); }
-.tk.st-sorry .eye-set { transform: scale(0.82) translateY(3px); }
-.tk.st-sorry .brow, .tk.st-sorry .mouth-sad, .tk.st-sorry .sweat { opacity: 1; }
-.tk.st-sorry .mouth { opacity: 0; }
-.tk.st-sorry .sweat { animation: tk-sweat 1.6s ease-in infinite; }
-.tk.st-sorry .float { animation-duration: 6s; }
-.tk.st-sleep .eye-n, .tk.st-sleep .mouth { opacity: 0; }
-.tk.st-sleep .eye-c, .tk.st-sleep .mouth-s, .tk.st-sleep .zzz { opacity: 1; }
-.tk.st-sleep .zzz text { animation: tk-z 2.4s ease-in infinite; }
-.tk.st-sleep .zzz text:nth-child(2) { animation-delay: 0.8s; }
-.tk.st-sleep .zzz text:nth-child(3) { animation-delay: 1.6s; }
-.tk.st-sleep .float { animation: tk-breathe 4.8s ease-in-out infinite; }
-.tk.st-sleep .head-g { transform: rotate(8deg) translateY(3px); }
-.tk.st-sleep .tip-glow { animation: none; opacity: 0.25; }
-.tk.st-sleep .eyes { transform: none; }
-.tk.st-love .eye-n { opacity: 0; }
-.tk.st-love .eye-l { opacity: 1; animation: tk-pulse 0.7s ease-in-out infinite; }
-.tk.st-love .hearts { opacity: 1; }
-.tk.st-love .hearts path { animation: tk-rise 2s ease-in infinite; }
-.tk.st-love .hearts g:nth-child(2) path { animation-delay: 0.7s; }
-.tk.st-love .hearts g:nth-child(3) path { animation-delay: 1.3s; }
-.tk.st-love .head-g { animation: tk-sway 1.6s ease-in-out infinite; }
-.tk.st-point .hand-r { opacity: 1; transform: scale(1) translate(8px, -6px) rotate(-20deg); }
-.tk.st-point .eyes { transform: translate(9px, 2px); }
-.tk.st-point .head-g { transform: rotate(6deg); }
-.tk.st-dizzy .eye-n, .tk.st-dizzy .mouth { opacity: 0; }
-.tk.st-dizzy .eye-x { opacity: 1; animation: tk-spin 0.9s linear infinite; }
-.tk.st-dizzy .mouth-sad { opacity: 1; }
-.tk.st-dizzy .head-g { animation: tk-wobble 0.9s ease-in-out infinite; }
-.tk.st-giggle .float { animation: tk-squish 0.5s ease-in-out; }
-.tk.st-notice .eye-set { transform: scale(1.18); }
-.tk.st-notice .head-g { transform: translateY(-3px); }
-/* Celebrations: four calm ones, picked at random */
-.tk.st-cel-a .eye-n, .tk.st-cel-b .eye-n, .tk.st-cel-c .eye-n, .tk.st-cel-d .eye-n { opacity: 0; }
-.tk.st-cel-b .eye-h, .tk.st-cel-c .eye-h, .tk.st-cel-d .eye-h { opacity: 1; }
-.tk.st-cel-a .vcheck { animation: cel-check 2.5s ease both; }
-.tk.st-cel-a .eye-h, .tk.st-cel-a .mouth, .tk.st-cel-a .blush { animation: cel-in 2.5s ease both; }
-.tk.st-cel-a .ripple { opacity: 1; }
-.tk.st-cel-a .rp1 { animation: cel-ripple 1.2s ease-out both; }
-.tk.st-cel-a .rp2 { animation: cel-ripple 1.2s ease-out 0.35s both; }
-.tk.st-cel-a .head-g { animation: cel-nod 2.5s ease both; }
-.tk.st-cel-b .float { animation: cel-hop 2.5s ease both; }
-.tk.st-cel-b .thumb { animation: cel-thumb 2.5s ease both; }
-.tk.st-cel-b .spark { animation: cel-twinkle 2.5s ease both; }
-.tk.st-cel-b .head-g { transform: rotate(-4deg); }
-.tk.st-cel-c .holder { animation: cel-raise 2.5s ease both; }
-.tk.st-cel-c .rays { animation: tk-spin 5s linear infinite; }
-.tk.st-cel-c .head-g { transform: rotate(5deg); }
-.tk.st-cel-c .eyes { transform: translate(6px, -5px); }
-.tk.st-cel-d .blush { opacity: 1; }
-.tk.st-cel-d .head-g { animation: cel-nod2 2.5s ease both; }
-.tk.st-cel-d .halo { animation: cel-halo 2.5s ease both; }
-@keyframes tk-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@keyframes tk-shadow { 0%, 100% { transform: scaleX(1); opacity: 0.2; } 50% { transform: scaleX(0.8); opacity: 0.1; } }
-@keyframes tk-thrust { 0%, 100% { opacity: 0.35; transform: scaleX(1); } 50% { opacity: 0.6; transform: scaleX(1.15); } }
-@keyframes tk-spin { to { transform: rotate(360deg); } }
-@keyframes tk-glow { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
-@keyframes tk-scan { 0% { transform: translateY(-22px); opacity: 0; } 20%, 80% { opacity: 0.9; } 100% { transform: translateY(22px); opacity: 0; } }
-@keyframes tk-talk { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1.25); } }
-@keyframes tk-bounce { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-12px); } 55% { transform: translateY(-8px); } }
-@keyframes tk-spark { 0%, 100% { transform: scale(0.3) rotate(0); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
-@keyframes tk-wave { from { transform: rotate(-18deg); } to { transform: rotate(22deg); } }
-@keyframes tk-spring { 0% { transform: scaleY(1); } 30% { transform: scaleY(1.35); } 60% { transform: scaleY(0.85); } 100% { transform: scaleY(1); } }
-@keyframes tk-hop { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-14px); } }
-@keyframes tk-sweat { 0% { transform: translateY(-4px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
-@keyframes tk-z { 0% { transform: translate(0, 0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(-18px, -34px) scale(1.2); opacity: 0; } }
-@keyframes tk-breathe { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(2px) scale(1.02, 0.98); } }
-@keyframes tk-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); } }
-@keyframes tk-rise { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-46px) scale(1.1); opacity: 0; } }
-@keyframes tk-sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
-@keyframes tk-wobble { 0%, 100% { transform: rotate(-8deg) translateX(-3px); } 50% { transform: rotate(8deg) translateX(3px); } }
-@keyframes tk-squish { 0% { transform: scale(1); } 30% { transform: scale(1.12, 0.86); } 60% { transform: scale(0.94, 1.08); } 100% { transform: scale(1); } }
-@keyframes cel-check { 0% { stroke-dashoffset: 100; opacity: 1; } 26% { stroke-dashoffset: 0; opacity: 1; transform: scale(1); } 40% { transform: scale(1.1); } 56% { stroke-dashoffset: 0; opacity: 1; transform: scale(1); } 66%, 100% { stroke-dashoffset: 0; opacity: 0; } }
-@keyframes cel-in { 0%, 58% { opacity: 0; } 70%, 100% { opacity: 1; } }
-@keyframes cel-ripple { from { transform: scale(0.7); opacity: 0.9; } to { transform: scale(1.5); opacity: 0; } }
-@keyframes cel-nod { 0%, 62% { transform: none; } 72% { transform: translateY(4px) rotate(3deg); } 84% { transform: none; } 92% { transform: translateY(2px); } 100% { transform: none; } }
-@keyframes cel-hop { 0% { transform: none; } 16% { transform: translateY(-10px); } 32%, 100% { transform: none; } }
-@keyframes cel-thumb { 0% { opacity: 0; transform: translate(0, 12px) scale(0.4); } 20% { opacity: 1; transform: translate(-2px, -26px) scale(1.06); } 30% { transform: translate(-2px, -22px) scale(1); } 44% { transform: translate(-2px, -22px) rotate(-9deg); } 56% { transform: translate(-2px, -22px) rotate(7deg); } 66%, 82% { opacity: 1; transform: translate(-2px, -22px) rotate(0); } 100% { opacity: 0; transform: translate(0, 8px) scale(0.5); } }
-@keyframes cel-twinkle { 0%, 14% { opacity: 0; transform: scale(0.3); } 32% { opacity: 1; transform: scale(1) rotate(45deg); } 58% { opacity: 0; transform: scale(0.4) rotate(90deg); } 100% { opacity: 0; } }
-@keyframes cel-raise { 0% { opacity: 0; transform: translateY(34px) scale(0.5); } 24% { opacity: 1; transform: translateY(-5px) scale(1.05); } 34%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(24px) scale(0.6); } }
-@keyframes cel-nod2 { 0% { transform: none; } 14% { transform: translateY(4px) rotate(-3deg); } 28% { transform: none; } 42% { transform: translateY(3px) rotate(2deg); } 56%, 100% { transform: none; } }
-@keyframes cel-halo { 0% { opacity: 0; transform: scale(0.8); } 30% { opacity: 0.38; transform: scale(1); } 70% { opacity: 0.28; } 100% { opacity: 0; transform: scale(1.12); } }
-@media (prefers-reduced-motion: reduce) {
-.tk *, .tk { animation-duration: 0.01s !important; animation-iteration-count: 1 !important; transition: none !important; }
-}
+.tk svg { display: block; inline-size: 100%; block-size: 100%; overflow: visible; direction: ltr; }
+.tk-tile { fill: var(--tk-tile); }
+.tk-rim { fill: none; stroke: var(--tk-rim); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.tk-ring { fill: none; stroke: var(--tk-tile); stroke-width: 2px; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.tk-body { transform-box: fill-box; transform-origin: 50% 62%; transition: transform 320ms var(--tk-snap); }
+.tk-move { transform-box: fill-box; transform-origin: 50% 100%; }
+.tk-look { transform: translate(calc((var(--ex) + var(--lx, 0)) * 1px), calc((var(--ey) + var(--ly, 0)) * 1px)); transition: transform 200ms ease-out; }
+.tk-eye-a { transform: translate(calc(50px - var(--tk-dx)), 49px) scale(var(--tk-es)); }
+.tk-eye-b { transform: translate(calc(50px + var(--tk-dx)), 49px) scale(var(--tk-es)); }
+.tk-tak { transform: translate(50px, 49px) scale(var(--tk-es)); fill: var(--tk-eye); opacity: 0; transition: opacity 120ms; }
+.tk-e { transform-box: fill-box; transform-origin: center; transition: transform 300ms var(--tk-snap), opacity 160ms; }
+.tk-dot { fill: var(--tk-eye); transform-box: fill-box; transform-origin: center; transition: transform 140ms ease, opacity 140ms; }
+.tk-smile { fill: none; stroke: var(--tk-eye); stroke-width: 4.4px; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 140ms; }
+.tk.is-blink .tk-dot { transform: scaleY(.1); transition-duration: 70ms; }
 
-/* Site performance: the portal's idle loops (float, thrust, ear rings, antenna glow) repaint blurred
-   SVG every frame on the main thread. Here the bob moves to the outer span, which the compositor
-   animates without repainting; the inner loops rest. Mood animations (.tk.st-*) still run, briefly. */
-.tk .float, .tk .shadow, .tk .thrust, .tk .ring, .tk .tip-glow { animation: none; }
-.tk { animation: tk-bob 3.8s ease-in-out infinite; will-change: transform; }
-.tk.is-paused, .tk.is-paused * { animation-play-state: paused !important; }
-@keyframes tk-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3.5%); } }
-@media (prefers-reduced-motion: reduce) { .tk { animation: none; } }
+/* listening: the eyes drop to the field being typed in */
+.tk.st-listen { --ly: 3; }
+.tk.st-listen .tk-e { transform: scale(1.06); }
+/* thinking: the eyes tick a quarter turn in turn, tak then tek */
+.tk.st-think { --lx: 2; --ly: -2; }
+.tk.st-think .tk-e { animation: tk-tick 1.3s var(--tk-snap) infinite; }
+.tk.st-think .tk-eye-b .tk-e { animation-delay: .65s; }
+/* responding: a soft cadence while the answer types out */
+.tk.st-say .tk-e { animation: tk-say 560ms ease-in-out infinite alternate; }
+.tk.st-say .tk-eye-b .tk-e { animation-delay: -280ms; }
+/* hello and a job well done: the eyes smile; hello adds a nod, success a hop */
+.tk.st-greet .tk-dot, .tk.st-happy .tk-dot { opacity: 0; transform: scaleY(.3); }
+.tk.st-greet .tk-smile, .tk.st-happy .tk-smile { opacity: 1; }
+.tk.st-greet .tk-move { animation: tk-nod 900ms var(--tk-snap); }
+.tk.st-happy .tk-move { animation: tk-hop 520ms var(--tk-snap); }
+/* done: the eyes slide together and fuse into the wordmark's own dots */
+.tk.st-done .tk-eye-a .tk-e { transform: translateX(var(--tk-meet)); }
+.tk.st-done .tk-eye-b .tk-e { transform: translateX(calc(var(--tk-meet) * -1)); }
+.tk.st-done .tk-e { transition-duration: 340ms; }
+.tk.st-done .tk-dot { opacity: 0; transition-delay: 230ms; }
+.tk.st-done .tk-tak { opacity: 1; transition-delay: 230ms; }
+.tk.st-done .tk-ring { animation: tk-ring 900ms cubic-bezier(.2, .7, .3, 1) 240ms; }
+.tk.st-done .tk-move { animation: tk-pop 560ms var(--tk-snap) 200ms; }
+/* sorry: the eyes lower and slant, the tile bows and shakes once */
+.tk.st-sorry .tk-body { transform: translateY(2px) rotate(-5deg); }
+.tk.st-sorry .tk-move { animation: tk-shake 420ms ease-in-out; }
+.tk.st-sorry .tk-eye-a .tk-e { transform: translateY(2.5px) rotate(-14deg) scaleY(.55); }
+.tk.st-sorry .tk-eye-b .tk-e { transform: translateY(2.5px) rotate(14deg) scaleY(.55); }
+/* attention: the eyes turn to what he is showing, at the end of the line */
+.tk.st-attend { --lx: calc(4 * var(--tk-dir)); }
+.tk.st-attend .tk-e { transform: scale(1.1); }
+.tk.st-attend .tk-body { transform: rotate(calc(3deg * var(--tk-dir))); }
+.tk.st-surprise .tk-e { transform: scale(1.22); }
+.tk.st-surprise .tk-move { animation: tk-hop 480ms var(--tk-snap); }
+/* resting: eyes closed to a line, a slow breath */
+.tk.st-rest .tk-dot { transform: scaleY(.22); }
+.tk.st-rest .tk-e { opacity: .8; }
+.tk.st-rest .tk-body { transform: translateY(1.5px); }
+.tk.st-rest .tk-move { animation: tk-breathe 5.2s ease-in-out infinite; }
+/* the small replies to a pointer: a hover widens the eyes, a tap presses the tile */
+.tk.st-notice .tk-e { transform: scale(1.12); }
+.tk.st-press .tk-move { animation: tk-press 340ms var(--tk-snap); }
+.tk.is-paused * { animation-play-state: paused !important; }
+
+@keyframes tk-tick { 0% { transform: rotate(0); } 28%, 100% { transform: rotate(90deg); } }
+@keyframes tk-say { to { transform: scale(.82); } }
+@keyframes tk-nod { 30% { transform: rotate(-9deg); } 62% { transform: rotate(5deg); } }
+@keyframes tk-hop { 40% { transform: translateY(-7px); } }
+@keyframes tk-pop { 40% { transform: scale(1.06); } }
+@keyframes tk-ring { from { opacity: .45; transform: scale(1); } to { opacity: 0; transform: scale(1.34); } }
+@keyframes tk-shake { 20% { transform: translateX(-2.5px); } 45% { transform: translateX(2px); } 70% { transform: translateX(-1px); } }
+@keyframes tk-breathe { 50% { transform: scale(.985, .97); } }
+@keyframes tk-press { 35% { transform: scale(1.06, .92); } }
+@media (prefers-reduced-motion: reduce) {
+  .tk *, .tk { animation: none !important; transition-duration: 1ms !important; transition-delay: 0s !important; }
+  .tk.st-think .tk-e { transform: rotate(45deg); }
+}
 
 /* headline words rise into place (whole words, so Arabic joins stay intact) */
 .js .split .w { display: inline-block; opacity: 0; transform: translateY(.42em); filter: blur(6px); transition: opacity 620ms var(--ease-out), transform 720ms var(--ease-snap), filter 620ms var(--ease-out); transition-delay: calc(var(--i) * 55ms + var(--base, 0ms)); }

@@ -221,9 +221,9 @@
     }));
   });
 
-  // Tiko, the portal's assistant, ported from TikoAvatar.vue: the same moods, driven by classes.
-  // He waves hello, follows the cursor with his eyes, reacts to a hover or a tap,
-  // gets dizzy on three quick taps, and dozes off when left alone.
+  // Tiko, TakTek's assistant: the portal's TikoAvatar.vue, driven here by classes (st-*).
+  // He says hello, speaks his lines, follows the cursor with his eyes, replies to a hover
+  // or a tap, fuses his eyes into the wordmark's dots on three quick taps, and rests when left alone.
   const tiko = document.querySelector('[data-tiko]');
   if (tiko) {
     const bubble = document.querySelector('[data-tiko-bubble]');
@@ -231,7 +231,7 @@
     const cells = [...document.querySelectorAll('[data-lattice] .cell')];
     let override = null;
     let overrideTimer = 0;
-    let clicks = [];
+    let taps = [];
     let lastActivity = Date.now();
 
     const apply = () => {
@@ -248,18 +248,19 @@
       tiko.style.setProperty('--ey', y.toFixed(2));
     };
 
-    // the speech bubble walks through Tiko's lines once, then steps aside
+    // the speech bubble walks through Tiko's lines once, his eyes keeping time while each appears
     let lineTimer = 0;
-    const speak = (from = 0) => {
+    const speak = () => {
       if (!bubble || !lines.length) return;
       clearTimeout(lineTimer);
-      let i = from;
+      let i = 0;
       const next = () => {
         if (i >= lines.length) { bubble.classList.remove('is-on'); return; }
         bubble.textContent = lines[i++];
         bubble.classList.remove('is-on');
         void bubble.offsetWidth;
         bubble.classList.add('is-on');
+        if (!override || override === 'say') react('say', 1100);
         lineTimer = setTimeout(next, reduceMotion ? 6000 : 3600);
       };
       next();
@@ -279,52 +280,57 @@
     const tap = () => {
       lastActivity = Date.now();
       const now = Date.now();
-      clicks = [...clicks.filter((time) => now - time < 900), now];
-      if (override === 'sleep') react('surprised', 900);
-      else if (clicks.length >= 3) { clicks = []; react('dizzy', 2200); }
-      else react('giggle', 600);
+      taps = [...taps.filter((time) => now - time < 900), now];
+      if (override === 'rest') react('surprise', 800);
+      else if (taps.length >= 3) { taps = []; react('done', 1600); }
+      else react('press', 340);
       ripple();
     };
     tiko.addEventListener('click', tap);
     tiko.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tap(); }
     });
-    tiko.addEventListener('mouseenter', () => { if (!override) react('notice', 900); });
+    tiko.addEventListener('mouseenter', () => { if (!override) react('notice', 800); });
 
-    document.addEventListener('pointermove', (event) => {
+    const wake = () => {
       lastActivity = Date.now();
-      if (override === 'sleep') { react('surprised', 900); return; }
+      if (override === 'rest') { react('surprise', 800); return true; }
+      return false;
+    };
+    document.addEventListener('keydown', wake);
+    document.addEventListener('pointermove', (event) => {
+      if (wake()) return;
       const box = tiko.getBoundingClientRect();
       const dx = event.clientX - (box.left + box.width / 2);
-      const dy = event.clientY - (box.top + box.height * 0.48);
+      const dy = event.clientY - (box.top + box.height / 2);
       const distance = Math.hypot(dx, dy) || 1;
-      const reach = Math.min(1, distance / 260);
-      setEyes((dx / distance) * 9 * reach, (dy / distance) * 7 * reach);
+      const reach = Math.min(1, distance / 240);
+      setEyes((dx / distance) * 5 * reach, (dy / distance) * 4 * reach);
     }, { passive: true });
 
     if (!reduceMotion) {
       const blink = () => setTimeout(() => {
-        if (!['sleep', 'happy', 'love', 'dizzy'].includes(override)) {
-          tiko.classList.add('blink');
-          setTimeout(() => tiko.classList.remove('blink'), 130);
+        if (!override || override === 'notice') {
+          tiko.classList.add('is-blink');
+          setTimeout(() => tiko.classList.remove('is-blink'), 110);
         }
         blink();
       }, 2200 + Math.random() * 3800);
       blink();
       setInterval(() => {
         const quiet = Date.now() - lastActivity;
-        if (!override && quiet > 20000) { override = 'sleep'; apply(); }
-        if (!override && quiet > 3000 && Math.random() < 0.35) setEyes(Math.random() * 16 - 8, Math.random() * 8 - 4);
+        if (!override && quiet > 20000) { override = 'rest'; apply(); }
+        if (!override && quiet > 3000 && Math.random() < 0.35) setEyes(Math.random() * 8 - 4, Math.random() * 4 - 2);
       }, 1800);
     }
 
-    // Tiko rests while the hero is off screen
+    // Tiko holds still while the hero is off screen
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(([entry]) => tiko.classList.toggle('is-paused', !entry.isIntersecting)).observe(tiko);
     }
 
-    // hello: a wave and the first line, once the loader (if any) has opened
-    setTimeout(() => { react('wave', 2400); speak(); }, root.classList.contains('intro-on') ? 1500 : 500);
+    // hello: a nod and the first line, once the loader (if any) has opened
+    setTimeout(() => { react('greet', 1400); setTimeout(speak, 900); }, root.classList.contains('intro-on') ? 1500 : 500);
   }
 
   // Hero lattice: cells near the pointer brighten, like parts being picked up.
