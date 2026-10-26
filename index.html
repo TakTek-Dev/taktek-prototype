@@ -20,7 +20,8 @@
       if (langs.indexOf(code) > -1) pick = code;
     }
   }
-  location.replace((pick || 'en') + '/');
+  var old = { services: 'services/', works: 'work/', contact: 'contact/', devlo: 'devlo/', process: '#proc-h', portal: '#proc-h', faq: '#faq-h' }, hash = location.hash.slice(1);
+  location.replace((pick || 'en') + '/' + (old[hash] || (hash ? '#' + hash : '')));
 })();
 </script>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101413;color:#fff;font:16px/1.5 system-ui,sans-serif}ul{list-style:none;padding:0;display:flex;gap:24px}a{color:#D4F53C}</style>
