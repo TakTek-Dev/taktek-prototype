@@ -366,12 +366,14 @@
     lattice.addEventListener('pointerleave', () => { point = null; if (!frame) frame = requestAnimationFrame(paint); });
   }
 
-  // Project form: validates in the page's language, then hands the message to
-  // the visitor's email app. Nothing is sent to a server.
+  // Project form: validates in the page's language, then sends the message to the client portal
+  // (SiteEnquiryController there). If the portal cannot be reached, it offers the email address.
   const form = document.querySelector('[data-form]');
   if (form) {
     const el = form.elements; // form.name would be the form's own name attribute
     const msgs = JSON.parse(form.dataset.msgs);
+    // when the form opened: the portal takes a message sent within seconds of it for a robot's
+    const formOpened = Date.now();
     const status = form.querySelector('[data-status]');
     const topic = new URLSearchParams(location.search).get('topic');
     if (topic && el.topic.querySelector(`option[value="${CSS.escape(topic)}"]`)) el.topic.value = topic;
@@ -408,22 +410,63 @@
         firstBad.focus();
         return;
       }
-      const langs = [...form.querySelectorAll('input[name="langs"]:checked')].map((i) => i.value).join(', ');
-      const lines = [
-        `${form.querySelector('label[for="f-name"]').textContent.trim()}: ${el.name.value.trim()}`,
-        el.organisation.value.trim() ? `${form.querySelector('label[for="f-org"]').firstChild.textContent.trim()}: ${el.organisation.value.trim()}` : null,
-        `${form.querySelector('label[for="f-email"]').textContent.trim()}: ${el.email.value.trim()}`,
-        `${form.querySelector('label[for="f-topic"]').textContent.trim()} ${el.topic.options[el.topic.selectedIndex].text}`,
-        langs ? `${form.querySelector('legend').firstChild.textContent.trim()}: ${langs}` : null,
-        '',
-        el.message.value.trim(),
-      ].filter((line) => line !== null);
-      const subject = `${msgs['form.subject']}: ${el.topic.options[el.topic.selectedIndex].text}`;
-      const href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
-      form.dataset.lastMailto = href;
-      status.className = 'form-status is-ok';
-      status.textContent = msgs['form.ok'];
-      window.location.href = href;
+      const languages = [...form.querySelectorAll('input[name="langs"]:checked')].map((i) => i.value);
+      const button = form.querySelector('button[type="submit"]');
+      const fail = (text, withEmail) => {
+        status.className = 'form-status is-error';
+        status.textContent = text;
+        if (withEmail) {
+          const link = document.createElement('a');
+          link.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(msgs['form.subject'])}`;
+          link.textContent = form.dataset.email;
+          status.append(' ', link);
+        }
+      };
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      status.className = 'form-status';
+      status.textContent = msgs['form.sending'];
+      fetch(form.dataset.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name: el.name.value.trim(),
+          email: el.email.value.trim(),
+          organisation: el.organisation.value.trim() || null,
+          topic: el.topic.value,
+          languages,
+          message: el.message.value.trim(),
+          locale: form.dataset.lang,
+          page: location.pathname,
+          website: el.website.value,
+          started: formOpened,
+        }),
+      })
+        .then(async (response) => {
+          if (response.ok) {
+            form.reset();
+            status.className = 'form-status is-ok';
+            status.textContent = msgs['form.sent'];
+            return;
+          }
+          if (response.status === 422) {
+            // the portal's own words are in its language: the page says it in the reader's
+            const { errors = {} } = await response.json().catch(() => ({}));
+            const wording = { email: msgs['form.err.email'], message: msgs['form.err.short'] };
+            Object.keys(errors).forEach((key) => {
+              const field = el[key];
+              if (field && field.id) setError(field, wording[key] ?? msgs['form.err.required']);
+            });
+            fail(msgs['form.err.summary'], false);
+            return;
+          }
+          fail(response.status === 429 ? msgs['form.err.rate'] : msgs['form.err.network'], response.status !== 429);
+        })
+        .catch(() => fail(msgs['form.err.network'], true))
+        .finally(() => {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+        });
     });
   }
 })();
